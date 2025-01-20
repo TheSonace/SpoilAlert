@@ -1,0 +1,20 @@
+CREATE TABLE item_data (
+  RecordKey INTEGER PRIMARY KEY AUTOINCREMENT,
+  barCode TEXT NOT NULL,
+  spoildate TEXT NOT NULL,
+  scandatetime TEXT NOT NULL,
+  removedatetime TEXT NOT NULL
+);
+
+CREATE INDEX item_data_barcode ON item_data(barCode);
+
+INSERT INTO item_data (barCode, spoildate, scandatetime, removedatetime)
+VALUES (0000, '2000-01-01',  '1900-01-01',  '2025-01-01');
+
+selectAll:
+SELECT *
+FROM item_data;
+
+insert:
+INSERT INTO item_data (barCode, spoildate, scandatetime, removedatetime)
+VALUES(?, ?, ?, ?);
