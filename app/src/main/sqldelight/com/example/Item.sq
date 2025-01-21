@@ -18,3 +18,7 @@ FROM item_data;
 insert:
 INSERT INTO item_data (barCode, spoildate, scandatetime, removedatetime)
 VALUES(?, ?, ?, ?);
+
+deleteAll:
+DELETE
+FROM item_data;

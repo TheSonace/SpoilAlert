@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     id("app.cash.sqldelight") version "2.0.2"
+    kotlin("plugin.serialization") version "2.0.20"
 }
 
 android {
@@ -51,7 +52,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -70,6 +70,19 @@ dependencies {
 
     // SQL
     implementation("app.cash.sqldelight:android-driver:2.0.2")
+
+    //openfoods
+    val ktor_version = "2.1.0"
+    implementation("io.ktor:ktor-client-core:$ktor_version")
+    implementation("io.ktor:ktor-client-android:$ktor_version")
+    implementation("io.ktor:ktor-client-logging:$ktor_version")
+    implementation("io.ktor:ktor-http:$ktor_version")
+    implementation("io.ktor:ktor-server-content-negotiation:$ktor_version")
+    implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
+    implementation("com.google.code.gson:gson:2.8.9")
+
 }
 
 sqldelight {
