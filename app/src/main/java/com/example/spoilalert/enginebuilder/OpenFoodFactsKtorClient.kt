@@ -1,4 +1,4 @@
-package com.example.spoilalert
+package com.example.spoilalert.enginebuilder
 
 import io.ktor.client.call.*
 import io.ktor.client.request.*

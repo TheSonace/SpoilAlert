@@ -1,4 +1,4 @@
-package com.example.spoilalert
+package com.example.spoilalert.enginebuilder
 
 import com.example.spoilalert.model.ProductResponse
 
