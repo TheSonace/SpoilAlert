@@ -1,0 +1,26 @@
+CREATE TABLE IF NOT EXISTS DBInfo (
+  RecordKey INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_version INTEGER NOT NULL
+);
+
+INSERT INTO DBInfo (user_version)
+VALUES(3);
+
+insert:
+INSERT INTO DBInfo (user_version)
+VALUES(?);
+
+get_all:
+SELECT *
+FROM DBInfo
+ORDER BY RecordKey DESC;
+
+get_latest:
+SELECT user_version
+FROM DBInfo
+ORDER BY RecordKey DESC
+LIMIT 1;
+
+delete_all:
+DELETE
+FROM DBInfo;

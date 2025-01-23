@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS DBInfo (
+  RecordKey INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_version TEXT
+);
+
+INSERT INTO DBInfo (user_version)
+VALUES(2);

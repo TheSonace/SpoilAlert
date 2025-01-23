@@ -1,0 +1,22 @@
+CREATE TABLE IF NOT EXISTS product_data (
+  RecordKey INTEGER PRIMARY KEY AUTOINCREMENT,
+  barCode TEXT NOT NULL,
+  brand TEXT NOT NULL,
+  product TEXT NOT NULL,
+  status TEXT,
+  product_url TEXT NOT NULL,
+  image TEXT NOT NULL,
+  last_updated TEXT
+);
+
+selectAll:
+SELECT *
+FROM product_data;
+
+localcheck:
+SELECT barCode
+FROM product_data WHERE barCode = :test;
+
+insert:
+INSERT INTO product_data (barCode, brand, product, status, product_url, image, last_updated)
+VALUES(?, ?, ?, ?, ?, ?, ?);

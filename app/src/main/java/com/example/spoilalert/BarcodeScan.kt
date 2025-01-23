@@ -8,11 +8,15 @@ import android.util.Log
 import android.view.SurfaceHolder
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.example.spoilalert.databinding.ActivityBarcodeScanBinding
+import com.example.spoilalert.enginebuilder.OpenFoodFactsKtorClient
 import com.google.android.gms.vision.CameraSource
 import com.google.android.gms.vision.Detector
 import com.google.android.gms.vision.barcode.Barcode
 import com.google.android.gms.vision.barcode.BarcodeDetector
+import kotlinx.coroutines.launch
 import java.io.IOException
 import java.io.InputStream
 import java.net.URL
@@ -24,6 +28,14 @@ import java.util.concurrent.Executors
 
 
 class BarcodeScan : AppCompatActivity() {
+    private val ktorclient = OpenFoodFactsKtorClient()
+    private val database = Database(AndroidSqliteDriver(Database.Schema, this, "launch.db"))
+    private val itemQueries = database.itemQueries
+    private val productQueries = database.productQueries
+
+    val myFormat = "dd.MM.yyyy"
+    val sdf = SimpleDateFormat(myFormat, Locale.US)
+
     private val executorService: ExecutorService = Executors.newSingleThreadExecutor()
     private lateinit var binding: ActivityBarcodeScanBinding
     private lateinit var barcodeDetector: BarcodeDetector
@@ -37,9 +49,6 @@ class BarcodeScan : AppCompatActivity() {
         cal.set(Calendar.YEAR, year)
         cal.set(Calendar.MONTH, monthOfYear)
         cal.set(Calendar.DAY_OF_MONTH, dayOfMonth)
-
-        val myFormat = "dd.MM.yyyy"
-        val sdf = SimpleDateFormat(myFormat, Locale.US)
         spoildate = sdf.format(cal.time)
         addItemtoDB(spoildate)
     }
@@ -102,11 +111,18 @@ class BarcodeScan : AppCompatActivity() {
             override fun receiveDetections(detections: Detector.Detections<Barcode>) {
                 val barcodes = detections.detectedItems
                 if(barcodes.size()!=0){
-                    if(latestbarcodescan != barcodes.valueAt(0).displayValue){
+                    val getbarcode = barcodes.valueAt(0).displayValue
+                    if(latestbarcodescan != getbarcode){
+                        if(productQueries.localcheck(getbarcode).executeAsList().isEmpty()){
+                            lifecycleScope.launch {
+                                uploadNewProduct(getbarcode)
+                            }
+                        }
                         binding.btnAction.isClickable = true
                         binding.btnAction.text = "Scan Item"
                         latestbarcodescan = barcodes.valueAt(0).displayValue
                         binding.Preview.text = latestbarcodescan
+
                     }
                 }
 //                else {
@@ -128,6 +144,27 @@ class BarcodeScan : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         iniBc()
+    }
+
+    suspend fun uploadNewProduct(getbarcode: String) {
+            val json = ktorclient.fetchProductByCode(getbarcode)
+            val brand = json.product?.brands.toString()
+            val product = json.product?.productName.toString()
+            val productUrl = ktorclient.createProductUrl(getbarcode).toString()
+            val image = json.product?.imageFrontUrl.toString()
+            val status = json.status.toString()
+
+            productQueries.insert(
+                getbarcode,
+                brand,
+                product,
+                status,
+                productUrl,
+                image,
+                sdf.format(cal.time)
+            )
+
+        Log.d("TAG", productQueries.selectAll().executeAsList().toString())
     }
 
     private fun addItemtoDB(spoildate: String) {
