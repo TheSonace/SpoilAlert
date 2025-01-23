@@ -1,7 +1,10 @@
 package com.example.spoilalert
 
+import android.R.attr.src
 import android.annotation.SuppressLint
 import android.app.DatePickerDialog
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
@@ -18,7 +21,7 @@ import com.google.android.gms.vision.barcode.Barcode
 import com.google.android.gms.vision.barcode.BarcodeDetector
 import kotlinx.coroutines.launch
 import java.io.IOException
-import java.io.InputStream
+import java.net.HttpURLConnection
 import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -65,9 +68,11 @@ class BarcodeScan : AppCompatActivity() {
                     cal.get(Calendar.MONTH),
                     cal.get(Calendar.DAY_OF_MONTH)).show()
             }
-            else
+            else {
                 removeItemfromDB()
+            }
         }
+        binding.btnAction.isClickable = false
     }
 
     private fun iniBc(){
@@ -109,29 +114,34 @@ class BarcodeScan : AppCompatActivity() {
             }
 
             override fun receiveDetections(detections: Detector.Detections<Barcode>) {
+//                productQueries.deleteAll()
                 val barcodes = detections.detectedItems
+                if (binding.btnAction.text != "No Barcode Detected")
+                {binding.btnAction.text = if (binding.addremoveswitch.isChecked)
+                    {"Add Item"} else {"Remove Item"}}
                 if(barcodes.size()!=0){
+                    if (binding.btnAction.text == "No Barcode Detected"){
+                        binding.btnAction.text = if (binding.addremoveswitch.isChecked)
+                        {"Add Item"} else {"Remove Item"}}
+
                     val getbarcode = barcodes.valueAt(0).displayValue
                     if(latestbarcodescan != getbarcode){
-                        if(productQueries.localcheck(getbarcode).executeAsList().isEmpty()){
+                        try {productQueries.localcheck(getbarcode).executeAsList()[0]}
+                        catch (_: IndexOutOfBoundsException) {
                             lifecycleScope.launch {
-                                uploadNewProduct(getbarcode)
-                            }
-                        }
+                                downloadNewProduct(getbarcode)}}
+
                         binding.btnAction.isClickable = true
                         binding.btnAction.text = "Scan Item"
-                        latestbarcodescan = barcodes.valueAt(0).displayValue
+                        latestbarcodescan = getbarcode
                         binding.Preview.text = latestbarcodescan
 
+                        var productpreviewlist = productQueries.getlocal(latestbarcodescan)
+                        Log.d("TAAAAAAAAAAAAAg", productpreviewlist.executeAsOne().image)
+                        var img = LoadImageFromWebOperations(productpreviewlist.executeAsOne().image)
+                        binding.imageView.setImageBitmap(img)
                     }
                 }
-//                else {
-//                    binding.btnAction.isClickable = false
-//                    binding.btnAction.text = "No Barcode detected"
-//                    binding.Preview.text = ""
-//                    latestbarcodescan = ""
-//
-//                }
             }
         })
     }
@@ -146,7 +156,7 @@ class BarcodeScan : AppCompatActivity() {
         iniBc()
     }
 
-    suspend fun uploadNewProduct(getbarcode: String) {
+    suspend fun downloadNewProduct(getbarcode: String) {
             val json = ktorclient.fetchProductByCode(getbarcode)
             val brand = json.product?.brands.toString()
             val product = json.product?.productName.toString()
@@ -184,12 +194,20 @@ class BarcodeScan : AppCompatActivity() {
         Toast.makeText(applicationContext, "Item has been removed", Toast.LENGTH_SHORT).show()
     }
 
-    fun LoadImageFromWebOperations(url: String?): Drawable? {
+    fun LoadImageFromWebOperations(src: String): Bitmap? {
         try {
-            val `is` = URL(url).content as InputStream
-            val d = Drawable.createFromStream(`is`, "src name")
-            return d
-        } catch (e: Exception) {
+            Log.e("src", src)
+            val url = URL(src)
+            val connection = url.openConnection() as HttpURLConnection
+            connection.doInput = true
+            connection.connect()
+            val input = connection.inputStream
+            val myBitmap = BitmapFactory.decodeStream(input)
+            Log.e("Bitmap", "returned")
+            return myBitmap
+        } catch (e: IOException) {
+            e.printStackTrace()
+            Log.e("Exception", e.message!!)
             return null
         }
     }
