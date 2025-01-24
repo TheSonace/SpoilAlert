@@ -1,6 +1,5 @@
 package com.example.spoilalert
 
-import android.R
 import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.graphics.Bitmap
@@ -8,7 +7,6 @@ import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
 import android.view.SurfaceHolder
-import android.view.View
 import android.widget.Toast
 import android.widget.ViewFlipper
 import androidx.appcompat.app.AppCompatActivity
@@ -22,6 +20,7 @@ import com.google.android.gms.vision.barcode.Barcode
 import com.google.android.gms.vision.barcode.BarcodeDetector
 import kotlinx.coroutines.launch
 import java.io.IOException
+import java.lang.NullPointerException
 import java.net.HttpURLConnection
 import java.net.URL
 import java.text.SimpleDateFormat
@@ -32,6 +31,7 @@ import java.util.concurrent.Executors
 
 
 var latestbarcodescan = ""
+var activeScanBoolean = 0
 
 class BarcodeScan : AppCompatActivity() {
     private val ktorclient = OpenFoodFactsKtorClient()
@@ -50,35 +50,35 @@ class BarcodeScan : AppCompatActivity() {
     var scandatetime = ""
     var spoildate = ""
     var cal = Calendar.getInstance()
-    val dateSetListener = DatePickerDialog.OnDateSetListener { view, year, monthOfYear, dayOfMonth ->
+
+    private val dateSetListener = DatePickerDialog.OnDateSetListener { view, year, monthOfYear, dayOfMonth ->
         cal.set(Calendar.YEAR, year)
         cal.set(Calendar.MONTH, monthOfYear)
         cal.set(Calendar.DAY_OF_MONTH, dayOfMonth)
         spoildate = sdf.format(cal.time)
         addItemtoDB(spoildate)
     }
-//    var mDialog: Dialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
-
         super.onCreate(savedInstanceState)
         binding = ActivityBarcodeScanBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.flipperMedia.btnAction.setOnClickListener {
-            if (binding.flipperMedia.addremoveswitch.isChecked) {
-                DatePickerDialog(this@BarcodeScan, dateSetListener,
-                    cal.get(Calendar.YEAR),
-                    cal.get(Calendar.MONTH),
-                    cal.get(Calendar.DAY_OF_MONTH)).show()
-            }
-            else {
-                removeItemfromDB()
-            }
+        binding.flipperMedia.btnAddItem.setOnClickListener {
+            DatePickerDialog(this@BarcodeScan, dateSetListener,
+                cal.get(Calendar.YEAR),
+                cal.get(Calendar.MONTH),
+                cal.get(Calendar.DAY_OF_MONTH)).show()
         }
-        binding.flipperMedia.addremoveswitch.setOnClickListener {
-            binding.flipperMedia.btnAction.text = if (binding.flipperMedia.addremoveswitch.isChecked)
-            {"Add Item"} else {"Remove Item"}}
+
+        binding.flipperMedia.btnRemoveItem.setOnClickListener {
+            removeItemfromDB()
+        }
+
+        binding.button.setOnClickListener {
+            Toast.makeText(applicationContext, "BarCode can't be detected in DataBase. " +
+                    "Will need to manually add item.", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun iniBc(){
@@ -118,31 +118,32 @@ class BarcodeScan : AppCompatActivity() {
             }
 
             override fun receiveDetections(detections: Detector.Detections<Barcode>) {
-//                productQueries.deleteAll()
-                val barcodes = detections.detectedItems
-                if(barcodes.size()!=0){
-                    val getbarcode = barcodes.valueAt(0).displayValue
-                    Log.d("TAAAAAAAAAAAAAg", "scanned: " + getbarcode + "----stored: " + latestbarcodescan)
-                    if(latestbarcodescan != getbarcode){
-                        latestbarcodescan = getbarcode
-                        Log.d("TAAAAAAAAAAAAAg", "----stored: " + latestbarcodescan)
-                        val viewFlipper = binding.myViewFlipper
-                        try {productQueries.localcheck(getbarcode).executeAsList()[0]}
-                        catch (_: IndexOutOfBoundsException) {
-                            lifecycleScope.launch {
-                                downloadNewProduct(getbarcode)}}
-                        var productpreviewlist = productQueries.getlocal(latestbarcodescan)
-                        // ADD if null statement then do nothing
-                        var img = LoadImageFromWebOperations(productpreviewlist.executeAsOne().image)
-                        binding.flipperMedia.btnAction.isClickable = true
-                        latestbarcodescan = getbarcode
-                        binding.flipperMedia.Preview.text = latestbarcodescan
-                        binding.flipperMedia.imageView.layoutParams.height = 200
-                        binding.flipperMedia.imageView.setImageBitmap(img)
-
-                        runOnUiThread(Runnable { switchlayout(viewFlipper) })
-//                        viewFlipper.showNext()
-                        Log.d("TAAAAAAAg", "switch successful")
+                if (activeScanBoolean == 0) {
+                    val barcodes = detections.detectedItems
+                    if(barcodes.size()!=0){
+                        val getbarcode = barcodes.valueAt(0).displayValue
+                        if(latestbarcodescan != getbarcode){
+                            latestbarcodescan = getbarcode
+                            val viewFlipper = binding.myViewFlipper
+                            try {productQueries.localcheck(getbarcode).executeAsList()[0]}
+                            catch (_: IndexOutOfBoundsException) {
+                                lifecycleScope.launch {
+                                    downloadNewProduct(getbarcode)}}
+                            try {
+                                var productpreviewlist =
+                                    productQueries.getimg(latestbarcodescan).executeAsOne()
+                                if (productpreviewlist != "null") {
+                                    var img = loadImageFromWebOperations(productpreviewlist)
+                                    latestbarcodescan = getbarcode
+                                    binding.flipperMedia.imageView.layoutParams.height = 200
+                                    binding.flipperMedia.imageView.setImageBitmap(img)
+                                    runOnUiThread(Runnable { switchToPreview(viewFlipper) })}
+                            } catch(_: NullPointerException) {}
+                        }
+                        else {
+                            latestbarcodescan = ""
+                            Thread.sleep(1000)
+                        }
                     }
                 }
             }
@@ -151,7 +152,7 @@ class BarcodeScan : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-        cameraSource!!.release()
+        cameraSource.stop()
     }
 
     override fun onResume() {
@@ -159,10 +160,26 @@ class BarcodeScan : AppCompatActivity() {
         iniBc()
     }
 
-    fun switchlayout(viewFlipper: ViewFlipper) {
-        super.onPause()
-        cameraSource!!.release()
+    @Deprecated("Deprecated in Java")
+    override fun onBackPressed() {
+        val viewFlipper = binding.myViewFlipper
+        if (viewFlipper.displayedChild == viewFlipper.indexOfChild(binding.flipperMedia.main2)){
+            switchToScan()
+            Log.d("TAG", "re-initiated iniBc?")
+        }
+        else {super.onBackPressed()}
+        //super.onBackPressed();
+    }
+
+    fun switchToPreview(viewFlipper: ViewFlipper) {
+        activeScanBoolean = 1
         viewFlipper.displayedChild = viewFlipper.indexOfChild(binding.flipperMedia.main2)
+    }
+
+    fun switchToScan() {
+        val viewFlipper = binding.myViewFlipper
+        viewFlipper.displayedChild = viewFlipper.indexOfChild(binding.main)
+        activeScanBoolean = 0
     }
 
     suspend fun downloadNewProduct(getbarcode: String) {
@@ -193,6 +210,7 @@ class BarcodeScan : AppCompatActivity() {
         Log.d("TAG", spoildate)
         Log.d("TAG", "Added")
         Toast.makeText(applicationContext, "Item has been saved", Toast.LENGTH_SHORT).show()
+        switchToScan()
     }
 
     private fun removeItemfromDB() {
@@ -201,9 +219,10 @@ class BarcodeScan : AppCompatActivity() {
         Log.d("TAG", scandatetime)
         Log.d("TAG", "Removed")
         Toast.makeText(applicationContext, "Item has been removed", Toast.LENGTH_SHORT).show()
+        switchToScan()
     }
 
-    fun LoadImageFromWebOperations(src: String): Bitmap? {
+    fun loadImageFromWebOperations(src: String): Bitmap? {
         try {
             Log.e("src", src)
             val url = URL(src)

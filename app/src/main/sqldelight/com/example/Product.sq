@@ -25,6 +25,10 @@ getlocal:
 SELECT *
 FROM product_data WHERE barCode = :barcode;
 
+getimg:
+SELECT image
+FROM product_data WHERE barCode = :barcode;
+
 insert:
 INSERT INTO product_data (barCode, brand, product, status, product_url, image, last_updated)
 VALUES(?, ?, ?, ?, ?, ?, ?);
