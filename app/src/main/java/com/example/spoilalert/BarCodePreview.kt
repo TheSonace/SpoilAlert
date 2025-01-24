@@ -12,15 +12,17 @@ import com.example.spoilalert.databinding.BarcodePreviewBinding
 
 class BarCodePreview(context: Context) : Dialog(context) {
     private lateinit var binding: BarcodePreviewBinding
-    private var dialog = Dialog(context)
+    init {
+        dialog = Dialog(context)
+    }
 
     fun showPopup() {
         binding = BarcodePreviewBinding.inflate(layoutInflater)
         setContentView(binding.root)
         val dialogview = LayoutInflater.from(context).inflate(null, binding.root)
-        dialog.setCancelable(true)
-        dialog.setContentView(dialogview)
-        dialog.show()
+        dialog?.setCancelable(true)
+        dialog?.setContentView(dialogview)
+        dialog?.show()
     }
     companion object{
         var dialog: Dialog? = null

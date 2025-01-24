@@ -1,21 +1,20 @@
 package com.example.spoilalert
 
+import android.R
 import android.annotation.SuppressLint
 import android.app.DatePickerDialog
-import android.app.Dialog
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.SurfaceHolder
+import android.view.View
 import android.widget.Toast
+import android.widget.ViewFlipper
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.example.spoilalert.databinding.ActivityBarcodeScanBinding
-import com.example.spoilalert.databinding.BarcodePreviewBinding
 import com.example.spoilalert.enginebuilder.OpenFoodFactsKtorClient
 import com.google.android.gms.vision.CameraSource
 import com.google.android.gms.vision.Detector
@@ -32,6 +31,8 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 
+var latestbarcodescan = ""
+
 class BarcodeScan : AppCompatActivity() {
     private val ktorclient = OpenFoodFactsKtorClient()
     private val database = Database(AndroidSqliteDriver(Database.Schema, this, "launch.db"))
@@ -46,7 +47,6 @@ class BarcodeScan : AppCompatActivity() {
     private lateinit var barcodeDetector: BarcodeDetector
     private lateinit var cameraSource: CameraSource
 
-    var latestbarcodescan = ""
     var scandatetime = ""
     var spoildate = ""
     var cal = Calendar.getInstance()
@@ -57,19 +57,16 @@ class BarcodeScan : AppCompatActivity() {
         spoildate = sdf.format(cal.time)
         addItemtoDB(spoildate)
     }
-
 //    var mDialog: Dialog? = null
-//    val barCodePreview = BarCodePreview(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
         binding = ActivityBarcodeScanBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-//        mDialog = Dialog(this);
-
-        binding.btnAction.setOnClickListener {
-            if (binding.addremoveswitch.isChecked) {
+        binding.flipperMedia.btnAction.setOnClickListener {
+            if (binding.flipperMedia.addremoveswitch.isChecked) {
                 DatePickerDialog(this@BarcodeScan, dateSetListener,
                     cal.get(Calendar.YEAR),
                     cal.get(Calendar.MONTH),
@@ -79,9 +76,9 @@ class BarcodeScan : AppCompatActivity() {
                 removeItemfromDB()
             }
         }
-        binding.btnAction.isClickable = false
-
-
+        binding.flipperMedia.addremoveswitch.setOnClickListener {
+            binding.flipperMedia.btnAction.text = if (binding.flipperMedia.addremoveswitch.isChecked)
+            {"Add Item"} else {"Remove Item"}}
     }
 
     private fun iniBc(){
@@ -93,11 +90,11 @@ class BarcodeScan : AppCompatActivity() {
             .setAutoFocusEnabled(true)
             //.setFacing(CameraSource.CAMERA_FACING_BACK)
             .build()
-        binding.SurfaceView!!.holder.addCallback(object : SurfaceHolder.Callback{
+        binding.SurfaceView.holder.addCallback(object : SurfaceHolder.Callback{
             @SuppressLint("MissingPermission")
             override fun surfaceCreated(p0: SurfaceHolder) {
                 try {
-                    cameraSource.start(binding.SurfaceView!!.holder)
+                    cameraSource.start(binding.SurfaceView.holder)
                 }catch (e: IOException) {
                     e.printStackTrace()
                 }
@@ -108,9 +105,7 @@ class BarcodeScan : AppCompatActivity() {
                 format: Int,
                 width: Int,
                 height: Int
-            ) {
-
-            }
+            ) {}
 
             override fun surfaceDestroyed(holder: SurfaceHolder) {
                 cameraSource.stop()
@@ -125,36 +120,29 @@ class BarcodeScan : AppCompatActivity() {
             override fun receiveDetections(detections: Detector.Detections<Barcode>) {
 //                productQueries.deleteAll()
                 val barcodes = detections.detectedItems
-                if (binding.btnAction.text != "No Barcode Detected")
-                {binding.btnAction.text = if (binding.addremoveswitch.isChecked)
-                    {"Add Item"} else {"Remove Item"}}
                 if(barcodes.size()!=0){
-                    if (binding.btnAction.text == "No Barcode Detected"){
-                        binding.btnAction.text = if (binding.addremoveswitch.isChecked)
-                        {"Add Item"} else {"Remove Item"}}
-
-//                    mDialog!!.setContentView(BarcodePreviewBinding.inflate(layoutInflater).root)
-
-
-//                    barCodePreview.showPopup()
-//                    mDialog!!.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-
                     val getbarcode = barcodes.valueAt(0).displayValue
+                    Log.d("TAAAAAAAAAAAAAg", "scanned: " + getbarcode + "----stored: " + latestbarcodescan)
                     if(latestbarcodescan != getbarcode){
+                        latestbarcodescan = getbarcode
+                        Log.d("TAAAAAAAAAAAAAg", "----stored: " + latestbarcodescan)
+                        val viewFlipper = binding.myViewFlipper
                         try {productQueries.localcheck(getbarcode).executeAsList()[0]}
                         catch (_: IndexOutOfBoundsException) {
                             lifecycleScope.launch {
                                 downloadNewProduct(getbarcode)}}
-
-                        binding.btnAction.isClickable = true
-                        latestbarcodescan = getbarcode
-                        binding.Preview.text = latestbarcodescan
-
                         var productpreviewlist = productQueries.getlocal(latestbarcodescan)
-                        Log.d("TAAAAAAAAAAAAAg", productpreviewlist.executeAsOne().image)
+                        // ADD if null statement then do nothing
                         var img = LoadImageFromWebOperations(productpreviewlist.executeAsOne().image)
-                        binding.imageView.layoutParams.height = 200
-                        binding.imageView.setImageBitmap(img)
+                        binding.flipperMedia.btnAction.isClickable = true
+                        latestbarcodescan = getbarcode
+                        binding.flipperMedia.Preview.text = latestbarcodescan
+                        binding.flipperMedia.imageView.layoutParams.height = 200
+                        binding.flipperMedia.imageView.setImageBitmap(img)
+
+                        runOnUiThread(Runnable { switchlayout(viewFlipper) })
+//                        viewFlipper.showNext()
+                        Log.d("TAAAAAAAg", "switch successful")
                     }
                 }
             }
@@ -169,6 +157,12 @@ class BarcodeScan : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         iniBc()
+    }
+
+    fun switchlayout(viewFlipper: ViewFlipper) {
+        super.onPause()
+        cameraSource!!.release()
+        viewFlipper.displayedChild = viewFlipper.indexOfChild(binding.flipperMedia.main2)
     }
 
     suspend fun downloadNewProduct(getbarcode: String) {
