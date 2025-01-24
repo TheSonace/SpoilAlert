@@ -1,11 +1,12 @@
 package com.example.spoilalert
 
-import android.R.attr.src
 import android.annotation.SuppressLint
 import android.app.DatePickerDialog
+import android.app.Dialog
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.drawable.Drawable
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.SurfaceHolder
@@ -14,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.example.spoilalert.databinding.ActivityBarcodeScanBinding
+import com.example.spoilalert.databinding.BarcodePreviewBinding
 import com.example.spoilalert.enginebuilder.OpenFoodFactsKtorClient
 import com.google.android.gms.vision.CameraSource
 import com.google.android.gms.vision.Detector
@@ -56,10 +58,15 @@ class BarcodeScan : AppCompatActivity() {
         addItemtoDB(spoildate)
     }
 
+//    var mDialog: Dialog? = null
+//    val barCodePreview = BarCodePreview(this)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityBarcodeScanBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+//        mDialog = Dialog(this);
 
         binding.btnAction.setOnClickListener {
             if (binding.addremoveswitch.isChecked) {
@@ -73,6 +80,8 @@ class BarcodeScan : AppCompatActivity() {
             }
         }
         binding.btnAction.isClickable = false
+
+
     }
 
     private fun iniBc(){
@@ -124,6 +133,12 @@ class BarcodeScan : AppCompatActivity() {
                         binding.btnAction.text = if (binding.addremoveswitch.isChecked)
                         {"Add Item"} else {"Remove Item"}}
 
+//                    mDialog!!.setContentView(BarcodePreviewBinding.inflate(layoutInflater).root)
+
+
+//                    barCodePreview.showPopup()
+//                    mDialog!!.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+
                     val getbarcode = barcodes.valueAt(0).displayValue
                     if(latestbarcodescan != getbarcode){
                         try {productQueries.localcheck(getbarcode).executeAsList()[0]}
@@ -132,13 +147,13 @@ class BarcodeScan : AppCompatActivity() {
                                 downloadNewProduct(getbarcode)}}
 
                         binding.btnAction.isClickable = true
-                        binding.btnAction.text = "Scan Item"
                         latestbarcodescan = getbarcode
                         binding.Preview.text = latestbarcodescan
 
                         var productpreviewlist = productQueries.getlocal(latestbarcodescan)
                         Log.d("TAAAAAAAAAAAAAg", productpreviewlist.executeAsOne().image)
                         var img = LoadImageFromWebOperations(productpreviewlist.executeAsOne().image)
+                        binding.imageView.layoutParams.height = 200
                         binding.imageView.setImageBitmap(img)
                     }
                 }

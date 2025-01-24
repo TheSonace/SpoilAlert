@@ -7,21 +7,20 @@
     android:layout_height="match_parent"
     tools:context=".BarcodeScan">
 
-    <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:layout_above="@id/btnAction"
-        android:adjustViewBounds="true"
-        android:layout_weight="1"
-        android:layout_centerHorizontal="true"/>
-
     <SurfaceView
         android:id="@+id/SurfaceView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@id/imageView"
-        android:layout_below="@id/Preview" />
+        android:scaleType="fitXY"
+        android:layout_below="@id/Preview"
+        android:layout_above="@id/imageView"/>
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="match_parent"
+        android:layout_height="400dp"
+        android:scaleType="fitXY"
+        android:layout_above="@id/btnAction"/>
 
     <TextView
         android:id="@+id/Preview"
