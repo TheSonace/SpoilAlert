@@ -32,6 +32,8 @@ import java.util.concurrent.Executors
 
 var latestbarcodescan = ""
 var activeScanBoolean = 0
+var itemsRequired = 1
+var itemtobeAdded = 1
 
 class BarcodeScan : AppCompatActivity() {
     private val ktorclient = OpenFoodFactsKtorClient()
@@ -65,14 +67,24 @@ class BarcodeScan : AppCompatActivity() {
         setContentView(binding.root)
 
         binding.flipperMedia.btnAddItem.setOnClickListener {
-            DatePickerDialog(this@BarcodeScan, dateSetListener,
-                cal.get(Calendar.YEAR),
-                cal.get(Calendar.MONTH),
-                cal.get(Calendar.DAY_OF_MONTH)).show()
+            itemsRequired = Integer.parseInt(binding.flipperMedia.AddItems.text.toString())
+            openDatePicker()
         }
 
         binding.flipperMedia.btnRemoveItem.setOnClickListener {
             removeItemfromDB()
+        }
+
+        binding.flipperMedia.addCount.setOnClickListener {
+            val temp = Integer.parseInt(binding.flipperMedia.AddItems.text.toString())
+            Log.d("Add_count", temp.toString())
+            binding.flipperMedia.AddItems.setText((temp + 1).toString())
+        }
+
+        binding.flipperMedia.removeCount.setOnClickListener {
+            val temp = Integer.parseInt(binding.flipperMedia.AddItems.text.toString())
+            Log.d("Remove_count", temp.toString())
+            if (temp > 1) {binding.flipperMedia.AddItems.setText((temp - 1).toString())}
         }
 
         binding.button.setOnClickListener {
@@ -123,6 +135,8 @@ class BarcodeScan : AppCompatActivity() {
                     if(barcodes.size()!=0){
                         val getbarcode = barcodes.valueAt(0).displayValue
                         if(latestbarcodescan != getbarcode){
+
+                            Log.d("barcode read", getbarcode)
                             latestbarcodescan = getbarcode
                             val viewFlipper = binding.myViewFlipper
                             try {productQueries.localcheck(getbarcode).executeAsList()[0]}
@@ -131,11 +145,10 @@ class BarcodeScan : AppCompatActivity() {
                                     downloadNewProduct(getbarcode)}}
                             try {
                                 var productpreviewlist =
-                                    productQueries.getimg(latestbarcodescan).executeAsOne()
+                                    productQueries.getimg(latestbarcodescan).executeAsList()[0]
                                 if (productpreviewlist != "null") {
                                     var img = loadImageFromWebOperations(productpreviewlist)
                                     latestbarcodescan = getbarcode
-                                    binding.flipperMedia.imageView.layoutParams.height = 200
                                     binding.flipperMedia.imageView.setImageBitmap(img)
                                     runOnUiThread(Runnable { switchToPreview(viewFlipper) })}
                             } catch(_: NullPointerException) {}
@@ -172,7 +185,9 @@ class BarcodeScan : AppCompatActivity() {
     }
 
     fun switchToPreview(viewFlipper: ViewFlipper) {
+        binding.flipperMedia.AddItems.setText("1")
         activeScanBoolean = 1
+        itemtobeAdded = 1
         viewFlipper.displayedChild = viewFlipper.indexOfChild(binding.flipperMedia.main2)
     }
 
@@ -203,14 +218,28 @@ class BarcodeScan : AppCompatActivity() {
         Log.d("TAG", productQueries.selectAll().executeAsList().toString())
     }
 
+    private fun openDatePicker() {
+        DatePickerDialog(this@BarcodeScan, R.style.CustomDatePickerDialogTheme, dateSetListener,
+            cal.get(Calendar.YEAR),
+            cal.get(Calendar.MONTH),
+            cal.get(Calendar.DAY_OF_MONTH)).show()
+    }
+
     private fun addItemtoDB(spoildate: String) {
+        Log.d("loop_nr", itemtobeAdded.toString())
+        Log.d("item_required", itemsRequired.toString())
         scandatetime = Calendar.getInstance().time.toString()
         Log.d("TAG", latestbarcodescan)
         Log.d("TAG", scandatetime)
         Log.d("TAG", spoildate)
         Log.d("TAG", "Added")
-        Toast.makeText(applicationContext, "Item has been saved", Toast.LENGTH_SHORT).show()
-        switchToScan()
+        Toast.makeText(applicationContext, "Item " + itemtobeAdded + " of " + itemsRequired + " has been saved", Toast.LENGTH_SHORT).show()
+        if (itemtobeAdded == itemsRequired){
+            switchToScan()}
+        else {
+            itemtobeAdded += 1
+            openDatePicker()
+        }
     }
 
     private fun removeItemfromDB() {

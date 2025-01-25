@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main2"
     android:layout_width="fill_parent"
@@ -12,35 +13,60 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:scaleType="fitXY"
-        android:layout_above="@id/bottombuttons"/>
+        android:layout_above="@id/add_count"/>
 
-    <LinearLayout
-        android:id="@+id/bottombuttons"
-        android:layout_width="wrap_content"
+    <Button
+        android:id="@+id/btnRemoveItem"
+        android:layout_width="150dp"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_centerInParent="true"
-        android:orientation="horizontal" >
+        android:layout_alignParentLeft="true"
+        android:layout_marginBottom="15dp"
+        android:layout_marginStart="15dp"
+        android:text="Remove Item" />
 
-        <Button
-            android:id="@+id/btnRemoveItem"
-            android:layout_width="150dp"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginEnd="20dp"
-            android:text="Remove Item" />
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/add_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:fabCustomSize="32dp"
+        app:maxImageSize="18dp"
+        android:layout_above="@id/btnAddItem"
+        android:layout_alignRight="@id/btnAddItem"
+        android:clickable="true"
+        app:srcCompat="@drawable/add_circle" />
 
-        <Button
-            android:id="@+id/btnAddItem"
-            android:layout_width="150dp"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginStart="20dp"
-            android:text="Add Item" />
+    <EditText
+        android:id="@+id/AddItems"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/btnAddItem"
+        android:layout_toRightOf="@id/remove_count"
+        android:layout_toLeftOf="@id/add_count"
+        android:textAlignment="center"
+        android:text="1"
+        android:inputType="number" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/remove_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:fabCustomSize="32dp"
+        app:maxImageSize="18dp"
+        android:layout_above="@id/btnAddItem"
+        android:layout_alignLeft="@id/btnAddItem"
+        android:clickable="true"
+        app:srcCompat="@drawable/remove_circle" />
+
+    <Button
+        android:id="@+id/btnAddItem"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginBottom="15dp"
+        android:layout_marginEnd="15dp"
+        android:text="Add Item" />
 
 
-
-    </LinearLayout>
 </RelativeLayout>
