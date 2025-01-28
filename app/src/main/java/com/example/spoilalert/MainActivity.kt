@@ -19,6 +19,9 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
 import com.google.gson.reflect.TypeToken
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Date
 
 
 class MainActivity : ComponentActivity() {
@@ -63,14 +66,10 @@ class MainActivity : ComponentActivity() {
 
         // This data class needs to be moved into NewspaperModel
         data class Data2(
-            @SerializedName("RecordKey")
-        val RecordKey: Long,
             @SerializedName("barCode")
         val barCode: String,
-        @SerializedName("scandatetime")
-        val scandatetime: String,
             @SerializedName("spoildate")
-        val spoildate: String)
+        val spoildate: Date)
 
 
         // this data class needs to be moved into HeadlinesModel
@@ -79,23 +78,37 @@ class MainActivity : ComponentActivity() {
             val name: String,
             @SerializedName("headlines")
             val data: List<Data2>,
+            @SerializedName("item_count")
+            val item_count: Int,
+            @SerializedName("min_spoildate")
+            val min_spoildate: Date,
             @SerializedName("is_expanded")
             var isExpanded: Boolean? = false)
 
 
-        val allitems = itemQueries.selectAll().executeAsList()
+        val allitems = itemQueries.selectjson().executeAsList()
+        Log.d("grouped class", allitems.toString())
         // convert sql to raw json
         val rawjson = Gson().toJson(allitems)
+        Log.d("rawjson", rawjson.toString())
         // convert raw json to specified kotlin class.
         // Direct class to class conversion is more difficult than flat Json conversion
-        val data = GsonBuilder().create().fromJson(
+        val data = GsonBuilder().setDateFormat("dd.MM.yyyy").create().fromJson(
             rawjson , Array<Data2>::class.java).toList()
-        // convert back to raw json with mapped groupby values, column names
+        // map grouped class
+        val groupedClass = data.groupBy { it.barCode }
+            .map {
+                it.value.minByOrNull { Data2 -> Data2.spoildate}?.let { it1 ->
+                    Itemgrouptemp(it.key, it.value, it.value.count(),
+                        it1.spoildate)
+                }
+            }
+        Log.d("grouped class", groupedClass.toString())
+        // convert back to raw json
         val testjson = GsonBuilder()
             .serializeNulls()
             .create()
-            .toJson(data.groupBy { it.barCode }
-                .map { Itemgrouptemp(it.key, it.value) })
+            .toJson(groupedClass)
         // This is the same output as jsonhelper. can hook into newspaperadapter with this
         Log.d("this is the one????", testjson.toString())
     }

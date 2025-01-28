@@ -20,6 +20,7 @@ deleteAll:
 DELETE
 FROM item_data;
 
--- getitemoverview:
--- SELECT barCode, json_group_array(json_object('spoildate', spoildate,
--- 'scandatetime', scandatetime)) AS products FROM item_data GROUP BY barCode;
+selectjson:
+SELECT barCode, spoildate
+FROM item_data
+ORDER BY barCode, spoildate;
