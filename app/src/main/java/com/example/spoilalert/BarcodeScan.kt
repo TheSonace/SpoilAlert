@@ -233,6 +233,7 @@ class BarcodeScan : AppCompatActivity() {
         Log.d("TAG", scandatetime)
         Log.d("TAG", spoildate)
         Log.d("TAG", "Added")
+        itemQueries.insert(latestbarcodescan, spoildate, scandatetime)
         Toast.makeText(applicationContext, "Item " + itemtobeAdded + " of " + itemsRequired + " has been saved", Toast.LENGTH_SHORT).show()
         if (itemtobeAdded == itemsRequired){
             switchToScan()}

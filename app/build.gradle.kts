@@ -83,6 +83,8 @@ dependencies {
 
     // SQL
     implementation("app.cash.sqldelight:android-driver:2.0.2")
+    implementation("com.google.code.gson:gson:2.10.1")
+    implementation(libs.klaxon)
 
     //openfoods
     val ktor_version = "2.1.0"

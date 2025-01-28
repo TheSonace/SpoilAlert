@@ -8,11 +8,18 @@ import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import app.cash.sqldelight.db.SqlDriver
+import androidx.recyclerview.widget.LinearLayoutManager
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.example.DBInfoQueries
+import com.example.spoilalert.adapters.NewspaperAdapter
 import com.example.spoilalert.databinding.ActivityMainBinding
 import com.example.spoilalert.enginebuilder.OpenFoodFactsKtorClient
+import com.example.spoilalert.utils.JsonHelper
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.gson.annotations.SerializedName
+import com.google.gson.reflect.TypeToken
+
 
 class MainActivity : ComponentActivity() {
     val ktorclient = OpenFoodFactsKtorClient()
@@ -33,8 +40,16 @@ class MainActivity : ComponentActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         enableEdgeToEdge()
         setContentView(binding.root)
-        requestCamera = registerForActivityResult(ActivityResultContracts
-            .RequestPermission(),){
+
+        val recyclerView = binding.recyclerView
+        val adapter = NewspaperAdapter(this, JsonHelper(this).getNewspaperData())
+        recyclerView.adapter = adapter
+        recyclerView.layoutManager = LinearLayoutManager(this)
+
+        requestCamera = registerForActivityResult(
+            ActivityResultContracts
+                .RequestPermission(),
+        ){
             if(it){
                 val intent = Intent(this, BarcodeScan :: class.java)
                 startActivity(intent)
@@ -45,20 +60,60 @@ class MainActivity : ComponentActivity() {
 
         binding.startscanbutton.setOnClickListener() {requestCamera?.launch(android.Manifest.permission.CAMERA)}
 
-//        fun doDatabaseThings(){
-//            itemQueries.deleteAll()
-//            Log.d("TAG", itemQueries.selectAll().executeAsList().toString())
-//            itemQueries.insert(
-//                "0001",
-//                "2000-01-01",
-//                "1900-01-01",
-//                "2025-01-01")
-//            Log.d("TAG1", itemQueries.selectAll().executeAsList().toString())
-//            Log.d("TAG2", productQueries.selectAll().executeAsList()[0].product_url)
-//        }
-//        doDatabaseThings()
+
+        // This data class needs to be moved into NewspaperModel
+        data class Data2(
+            @SerializedName("RecordKey")
+        val RecordKey: Long,
+            @SerializedName("barCode")
+        val barCode: String,
+        @SerializedName("scandatetime")
+        val scandatetime: String,
+            @SerializedName("spoildate")
+        val spoildate: String)
 
 
+        // this data class needs to be moved into HeadlinesModel
+        data class Itemgrouptemp(
+            @SerializedName("name")
+            val name: String,
+            @SerializedName("headlines")
+            val data: List<Data2>,
+            @SerializedName("is_expanded")
+            var isExpanded: Boolean? = false)
+
+
+        val allitems = itemQueries.selectAll().executeAsList()
+        // convert sql to raw json
+        val rawjson = Gson().toJson(allitems)
+        // convert raw json to specified kotlin class.
+        // Direct class to class conversion is more difficult than flat Json conversion
+        val data = GsonBuilder().create().fromJson(
+            rawjson , Array<Data2>::class.java).toList()
+        // convert back to raw json with mapped groupby values, column names
+        val testjson = GsonBuilder()
+            .serializeNulls()
+            .create()
+            .toJson(data.groupBy { it.barCode }
+                .map { Itemgrouptemp(it.key, it.value) })
+        // This is the same output as jsonhelper. can hook into newspaperadapter with this
+        Log.d("this is the one????", testjson.toString())
+    }
+
+    private fun getJSONFromAssets(fileName: String): String? {
+        val json: String
+        try {
+            val inputStream = this.assets.open(fileName)
+            val size = inputStream.available()
+            val buffer = ByteArray(size)
+            inputStream.read(buffer)
+            inputStream.close()
+            json = String(buffer)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return null
+        }
+        return json
     }
 }
 

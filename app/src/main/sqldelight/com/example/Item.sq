@@ -3,7 +3,7 @@ CREATE TABLE item_data (
   barCode TEXT NOT NULL,
   spoildate TEXT NOT NULL,
   scandatetime TEXT NOT NULL,
-  removedatetime TEXT NOT NULL
+  removedatetime TEXT
 );
 
 CREATE INDEX item_data_barcode ON item_data(barCode);
@@ -13,9 +13,13 @@ SELECT *
 FROM item_data;
 
 insert:
-INSERT INTO item_data (barCode, spoildate, scandatetime, removedatetime)
-VALUES(?, ?, ?, ?);
+INSERT INTO item_data (barCode, spoildate, scandatetime)
+VALUES(?, ?, ?);
 
 deleteAll:
 DELETE
 FROM item_data;
+
+-- getitemoverview:
+-- SELECT barCode, json_group_array(json_object('spoildate', spoildate,
+-- 'scandatetime', scandatetime)) AS products FROM item_data GROUP BY barCode;
