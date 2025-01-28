@@ -15,6 +15,7 @@ open class JsonHelper(private var context: Context) {
             newspaperList = ArrayList()
 
         try {
+            Log.d("original json", getJSONFromAssets("fake_data.json").toString())
             val jsonObject = JSONObject(getJSONFromAssets("fake_data.json"))
             val jsonArray = jsonObject.getJSONArray("news_papers")
             Log.d("original fed json", jsonArray.toString())
@@ -26,8 +27,6 @@ open class JsonHelper(private var context: Context) {
                 val newsPaper = gson.fromJson<NewspaperModel>(tempJsonObject, NewspaperModel::class.java)
                 newspaperList?.add(newsPaper)
             }
-
-            Log.d("original return json", newspaperList.toString())
             return newspaperList
         } catch (e: Exception) {
             e.printStackTrace()

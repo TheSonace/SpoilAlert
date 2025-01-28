@@ -10,7 +10,7 @@ insert:
 INSERT INTO DBInfo (user_version)
 VALUES(?);
 
-get_all:
+deleteAll:
 SELECT *
 FROM DBInfo
 ORDER BY RecordKey DESC;

@@ -41,10 +41,9 @@ class BarcodeScan : AppCompatActivity() {
     private val itemQueries = database.itemQueries
     private val productQueries = database.productQueries
 
-    val myFormat = "dd.MM.yyyy"
+    val myFormat = "yyyyMMdd"
     val sdf = SimpleDateFormat(myFormat, Locale.US)
 
-    private val executorService: ExecutorService = Executors.newSingleThreadExecutor()
     private lateinit var binding: ActivityBarcodeScanBinding
     private lateinit var barcodeDetector: BarcodeDetector
     private lateinit var cameraSource: CameraSource
@@ -121,6 +120,7 @@ class BarcodeScan : AppCompatActivity() {
 
             override fun surfaceDestroyed(holder: SurfaceHolder) {
                 cameraSource.stop()
+                Toast.makeText(applicationContext, "returning to main()", Toast.LENGTH_SHORT).show()
             }
 
         })
@@ -144,10 +144,10 @@ class BarcodeScan : AppCompatActivity() {
                                 lifecycleScope.launch {
                                     downloadNewProduct(getbarcode)}}
                             try {
-                                var productpreviewlist =
+                                val productpreviewlist =
                                     productQueries.getimg(latestbarcodescan).executeAsList()[0]
                                 if (productpreviewlist != "null") {
-                                    var img = loadImageFromWebOperations(productpreviewlist)
+                                    val img = loadImageFromWebOperations(productpreviewlist)
                                     latestbarcodescan = getbarcode
                                     binding.flipperMedia.imageView.setImageBitmap(img)
                                     runOnUiThread(Runnable { switchToPreview(viewFlipper) })}

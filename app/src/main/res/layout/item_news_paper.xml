@@ -15,6 +15,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
+    <TextView
+        android:id="@+id/tvspoildate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tvPaperName"/>
+
     <ImageView
         android:id="@+id/ivArrow"
         android:layout_width="wrap_content"
@@ -27,7 +33,7 @@
         android:id="@+id/rvHeadlines"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/tvPaperName"
+        android:layout_below="@id/tvspoildate"
         android:layout_marginTop="6dp"
         android:visibility="gone" />
 </RelativeLayout>

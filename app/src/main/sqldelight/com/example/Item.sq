@@ -23,4 +23,4 @@ FROM item_data;
 selectjson:
 SELECT barCode, spoildate
 FROM item_data
-ORDER BY barCode, spoildate;
+ORDER BY spoildate, barCode;
