@@ -26,8 +26,6 @@ import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 
 var latestbarcodescan = ""
@@ -228,7 +226,7 @@ class BarcodeScan : AppCompatActivity() {
     private fun addItemtoDB(spoildate: String) {
         Log.d("loop_nr", itemtobeAdded.toString())
         Log.d("item_required", itemsRequired.toString())
-        scandatetime = Calendar.getInstance().time.toString()
+        scandatetime = sdf.format(Calendar.getInstance().time).toString()
         Log.d("TAG", latestbarcodescan)
         Log.d("TAG", scandatetime)
         Log.d("TAG", spoildate)
@@ -244,10 +242,11 @@ class BarcodeScan : AppCompatActivity() {
     }
 
     private fun removeItemfromDB() {
-        scandatetime = Calendar.getInstance().time.toString()
+        scandatetime = sdf.format(Calendar.getInstance().time).toString()
         Log.d("TAG", latestbarcodescan)
         Log.d("TAG", scandatetime)
         Log.d("TAG", "Removed")
+        itemQueries.removedfromstock(scandatetime, latestbarcodescan, latestbarcodescan)
         Toast.makeText(applicationContext, "Item has been removed", Toast.LENGTH_SHORT).show()
         switchToScan()
     }

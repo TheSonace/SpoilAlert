@@ -50,7 +50,10 @@ class MainActivity : ComponentActivity() {
         }
 
         binding.startscanbutton.setOnClickListener() { requestCamera?.launch(android.Manifest.permission.CAMERA) }
+    }
 
+
+    private fun iniBc(){
         val allitems = itemQueries.selectjson().executeAsList()
 
         val recyclerView = binding.recyclerView
@@ -59,7 +62,7 @@ class MainActivity : ComponentActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
     }
 
-    fun dbUpdateManager(dbinfoQueries: DBInfoQueries, driver: AndroidSqliteDriver) {
+    private fun dbUpdateManager(dbinfoQueries: DBInfoQueries, driver: AndroidSqliteDriver) {
         var versionNr = '1'.toString()
         try {
             versionNr = dbinfoQueries.get_latest().executeAsOne().toString()
@@ -81,5 +84,10 @@ class MainActivity : ComponentActivity() {
             Log.d("Software version", "Software updated to Version: " + versionNr)
         }
 //    Log.d("test", dbinfoQueries.get_all().executeAsList().toString())
+    }
+
+    override fun onResume() {
+        super.onResume()
+        iniBc()
     }
 }

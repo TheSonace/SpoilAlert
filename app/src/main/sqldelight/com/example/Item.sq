@@ -16,11 +16,40 @@ insert:
 INSERT INTO item_data (barCode, spoildate, scandatetime)
 VALUES(?, ?, ?);
 
+removedfromstock:
+UPDATE item_data
+SET removedatetime = ?
+WHERE RecordKey =
+(
+    SELECT MIN(RecordKey) FROM item_data
+    WHERE barCode = ? AND removedatetime IS NULL AND spoildate =
+    (
+       SELECT MIN(spoildate) AS spoildate
+       FROM item_data
+       WHERE barCode = ? AND removedatetime IS NULL
+    )
+);
+
 deleteAll:
 DELETE
 FROM item_data;
 
+selectAlltest:
+SELECT MIN(RecordKey) FROM item_data
+WHERE barCode = ? AND removedatetime IS NULL AND spoildate = (
+    SELECT MIN(spoildate) AS spoildate
+    FROM item_data
+    WHERE barCode = ? AND removedatetime IS NULL
+);
+
+test:
+SELECT MIN(spoildate) AS spoildate, MIN(RecordKey) AS RecordKey
+FROM item_data
+WHERE barCode = ? AND removedatetime IS NULL
+GROUP BY barCode ;
+
 selectjson:
 SELECT barCode, spoildate
 FROM item_data
+WHERE removedatetime IS NULL
 ORDER BY spoildate, barCode;
