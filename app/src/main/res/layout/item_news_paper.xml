@@ -21,6 +21,17 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/tvPaperName"/>
 
+    <Button
+        android:id="@+id/undo_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/button_undo"
+        android:textAllCaps="true"
+        android:textColor="@android:color/white"
+        android:layout_gravity="end|center_vertical"
+        style="@style/Base.Widget.AppCompat.Button.Borderless"
+        />
+
     <ImageView
         android:id="@+id/ivArrow"
         android:layout_width="wrap_content"
