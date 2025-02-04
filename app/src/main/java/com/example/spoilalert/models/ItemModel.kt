@@ -4,7 +4,9 @@ import com.google.gson.annotations.SerializedName
 import java.io.Serializable
 import java.util.Date
 
-class ItemModel(
+data class ItemModel(
+    @SerializedName("RecordKey")
+    val RecordKey: Int,
     @SerializedName("barCode")
     val barCode: String,
     @SerializedName("spoildate")

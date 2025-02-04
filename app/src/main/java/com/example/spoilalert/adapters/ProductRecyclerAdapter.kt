@@ -13,10 +13,11 @@ import com.example.spoilalert.R
 import com.example.spoilalert.models.ProductModel
 import java.text.SimpleDateFormat
 
+
 class ProductAdapter(context: Context, data: MutableList<ProductModel>?) :
     RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
     private var mContext: Context = context
-    private var items: MutableList<ProductModel>? = data
+    private var items: MutableList<ProductModel>? = data?.toMutableList()
     private var inflater: LayoutInflater = LayoutInflater.from(context)
     private var itemAdapter: ItemAdapter? = null
     @SuppressLint("SimpleDateFormat")
@@ -30,6 +31,11 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?) :
 
     override
     fun onBindViewHolder(holder: ProductViewHolder, position: Int) {
+
+        val animator: RecyclerView.ItemAnimator? = holder.rvHeadlines.getItemAnimator()
+        if (animator != null) {
+            animator.removeDuration = 0
+        }
         val item = items?.get(position)
 
         holder.tvName.text = item?.name
@@ -40,12 +46,15 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?) :
         holder.rvHeadlines.adapter = itemAdapter
         holder.rvHeadlines.layoutManager = LinearLayoutManager(mContext)
         holder.ivArrow.setOnClickListener { onItemClicked(item) }
+        holder.tvDate.text = item?.item_data?.get(0)?.spoildate?.let { formatter.format(it) }
         if (item?.isExpanded!!) {
             holder.rvHeadlines.visibility = View.VISIBLE
             holder.ivArrow.setImageResource(R.drawable.ic_arrow_up)
+            holder.tvDate.visibility = View.INVISIBLE
         } else {
             holder.rvHeadlines.visibility = View.GONE
             holder.ivArrow.setImageResource(R.drawable.ic_arrow_down)
+            holder.tvDate.visibility = View.VISIBLE
         }
     }
 

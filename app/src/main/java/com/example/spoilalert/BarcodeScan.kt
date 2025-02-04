@@ -35,9 +35,9 @@ var itemtobeAdded = 1
 
 class BarcodeScan : AppCompatActivity() {
     private val ktorclient = OpenFoodFactsKtorClient()
-    private val database = Database(AndroidSqliteDriver(Database.Schema, this, "launch.db"))
-    private val itemQueries = database.itemQueries
-    private val productQueries = database.productQueries
+    val database = Database(AndroidSqliteDriver(Database.Schema, this, "launch.db"))
+    val itemQueries = database.itemQueries
+    val productQueries = database.productQueries
 
     val myFormat = "yyyyMMdd"
     val sdf = SimpleDateFormat(myFormat, Locale.US)

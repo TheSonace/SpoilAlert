@@ -30,6 +30,11 @@ WHERE RecordKey =
     )
 );
 
+removedfromstockRecordKey:
+UPDATE item_data
+SET removedatetime = ?
+WHERE RecordKey = ?;
+
 deleteAll:
 DELETE
 FROM item_data;
@@ -49,7 +54,7 @@ WHERE barCode = ? AND removedatetime IS NULL
 GROUP BY barCode ;
 
 selectjson:
-SELECT barCode, spoildate
+SELECT RecordKey, barCode, spoildate
 FROM item_data
 WHERE removedatetime IS NULL
 ORDER BY spoildate, barCode;

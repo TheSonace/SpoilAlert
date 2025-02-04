@@ -13,12 +13,12 @@
     <TextView
         android:id="@+id/tvPaperName"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="match_parent" />
 
     <TextView
         android:id="@+id/tvspoildate"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_below="@id/tvPaperName"/>
 
     <Button
@@ -35,7 +35,7 @@
     <ImageView
         android:id="@+id/ivArrow"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_alignParentEnd="true"
         android:contentDescription="@string/img_description"
         android:src="@drawable/ic_arrow_down" />
@@ -43,7 +43,7 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvHeadlines"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_below="@id/tvspoildate"
         android:layout_marginTop="6dp"
         android:visibility="gone" />

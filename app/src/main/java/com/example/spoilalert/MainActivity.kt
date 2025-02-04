@@ -26,11 +26,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.example.DBInfoQueries
+import com.example.ItemQueries
 import com.example.spoilalert.adapters.ProductAdapter
 import com.example.spoilalert.databinding.ActivityMainBinding
 import com.example.spoilalert.enginebuilder.OpenFoodFactsKtorClient
 import com.example.spoilalert.utils.JsonConverter
-
 
 class MainActivity : ComponentActivity() {
     val ktorclient = OpenFoodFactsKtorClient()
