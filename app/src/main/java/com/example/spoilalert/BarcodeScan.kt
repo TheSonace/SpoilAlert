@@ -58,7 +58,9 @@ class BarcodeScan : AppCompatActivity() {
         addItemtoDB(spoildate)
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
+        Log.d("TAG", productQueries.selectAll().executeAsList().toString())
         super.onCreate(savedInstanceState)
         binding = ActivityBarcodeScanBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -73,15 +75,13 @@ class BarcodeScan : AppCompatActivity() {
         }
 
         binding.flipperMedia.addCount.setOnClickListener {
-            val temp = Integer.parseInt(binding.flipperMedia.AddItems.text.toString())
-            Log.d("Add_count", temp.toString())
-            binding.flipperMedia.AddItems.setText((temp + 1).toString())
+            val itemCount = Integer.parseInt(binding.flipperMedia.AddItems.text.toString())
+            binding.flipperMedia.AddItems.setText((itemCount + 1).toString())
         }
 
         binding.flipperMedia.removeCount.setOnClickListener {
-            val temp = Integer.parseInt(binding.flipperMedia.AddItems.text.toString())
-            Log.d("Remove_count", temp.toString())
-            if (temp > 1) {binding.flipperMedia.AddItems.setText((temp - 1).toString())}
+            val itemCount = Integer.parseInt(binding.flipperMedia.AddItems.text.toString())
+            if (itemCount > 1) {binding.flipperMedia.AddItems.setText((itemCount - 1).toString())}
         }
 
         binding.button.setOnClickListener {
@@ -140,7 +140,7 @@ class BarcodeScan : AppCompatActivity() {
                             try {productQueries.localcheck(getbarcode).executeAsList()[0]}
                             catch (_: IndexOutOfBoundsException) {
                                 lifecycleScope.launch {
-                                    downloadNewProduct(getbarcode)}}
+                                    downloadProduct(getbarcode)}}
                             try {
                                 val productpreviewlist =
                                     productQueries.getimg(latestbarcodescan).executeAsList()[0]
@@ -195,7 +195,7 @@ class BarcodeScan : AppCompatActivity() {
         activeScanBoolean = 0
     }
 
-    suspend fun downloadNewProduct(getbarcode: String) {
+    suspend fun downloadProduct(getbarcode: String) {
             val json = ktorclient.fetchProductByCode(getbarcode)
             val brand = json.product?.brands.toString()
             val product = json.product?.productName.toString()
@@ -212,8 +212,6 @@ class BarcodeScan : AppCompatActivity() {
                 image,
                 sdf.format(cal.time)
             )
-
-        Log.d("TAG", productQueries.selectAll().executeAsList().toString())
     }
 
     private fun openDatePicker() {

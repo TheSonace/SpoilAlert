@@ -6,7 +6,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
@@ -59,20 +59,17 @@ class ItemAdapter(context: Context, data: MutableList<ItemModel>?) :
     fun delete(pos: Int?, key: Int?) { //removes the row
         if (pos != null && key != null) {
             items?.removeAt(pos)
-            Log.d("datetime", sdf.format(Calendar.getInstance().time).toString())
             itemQueries.removedfromstockRecordKey(sdf.format(Calendar.getInstance().time).toString(),
                 key.toLong())
-            Log.d("RecordKey", key.toLong().toString())
             notifyItemRemoved(pos)
             notifyItemRangeChanged(pos, itemCount)
-
         }
     }
 
     class ItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var tvTitle: TextView = itemView.findViewById(R.id.tvTitle)
         var tvDescription: TextView = itemView.findViewById(R.id.tvDescription)
-        var deleteButton: Button = itemView.findViewById(R.id.deleteButton)
+        var deleteButton: ImageView = itemView.findViewById(R.id.deleteButton)
 
     }
 

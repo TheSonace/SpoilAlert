@@ -20,14 +20,11 @@ open class JsonConverter(private var context: Context, data: List<Selectjson>) {
 
         try {
             val rawjson = Gson().toJson(sqlQuery)
-            Log.d("test2", rawjson)
             // convert raw json to specified kotlin class.
             // Direct class to class conversion is more difficult than flat Json conversion
             val data = GsonBuilder().setDateFormat("yyyyMMdd").create().fromJson(
                 rawjson, Array<ItemModel>::class.java
             ).toMutableList()
-
-            Log.d("test3", data.toString())
             // map grouped class
             val groupedClass = data.groupBy { it.barCode }
                 .map {
@@ -38,13 +35,6 @@ open class JsonConverter(private var context: Context, data: List<Selectjson>) {
                         )
                     }
                 }
-            Log.d("test4", groupedClass.toString())
-
-            val groupedClass2 = data.groupBy { it.barCode }
-
-
-
-            Log.d("test4.1", groupedClass2.toString())
             // convert back to raw json Array
             val jsonArray = JSONArray(
                 GsonBuilder()
@@ -52,7 +42,6 @@ open class JsonConverter(private var context: Context, data: List<Selectjson>) {
                     .create()
                     .toJson(groupedClass)
             )
-            Log.d("test5", jsonArray.toString())
             val k = jsonArray.length()
 
             for (i in 0 until k) {

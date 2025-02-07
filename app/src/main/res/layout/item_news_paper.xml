@@ -2,40 +2,27 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginStart="8dp"
-    android:layout_marginTop="4dp"
-    android:layout_marginEnd="8dp"
-    android:layout_marginBottom="4dp"
+    android:layout_marginStart="16dp"
+    android:layout_marginTop="36dp"
+    android:layout_marginEnd="16dp"
     android:background="@color/colorWhite"
-    android:orientation="vertical"
-    android:padding="12dp">
+    android:orientation="vertical">
 
     <TextView
         android:id="@+id/tvPaperName"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="wrap_content" />
 
     <TextView
         android:id="@+id/tvspoildate"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/tvPaperName"/>
-
-    <Button
-        android:id="@+id/undo_button"
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/button_undo"
-        android:textAllCaps="true"
-        android:textColor="@android:color/white"
-        android:layout_gravity="end|center_vertical"
-        style="@style/Base.Widget.AppCompat.Button.Borderless"
-        />
+        android:layout_below="@id/tvPaperName"/>
 
     <ImageView
         android:id="@+id/ivArrow"
         android:layout_width="wrap_content"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:contentDescription="@string/img_description"
         android:src="@drawable/ic_arrow_down" />
@@ -43,8 +30,7 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvHeadlines"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:layout_below="@id/tvspoildate"
-        android:layout_marginTop="6dp"
         android:visibility="gone" />
 </RelativeLayout>
