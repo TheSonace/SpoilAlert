@@ -2,6 +2,7 @@ package com.example.spoilalert.adapters
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Color
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -16,6 +17,8 @@ import com.example.spoilalert.models.ItemModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import java.util.concurrent.TimeUnit
+import kotlin.math.ceil
 
 
 class ItemAdapter(context: Context, data: MutableList<ItemModel>?) :
@@ -34,7 +37,7 @@ class ItemAdapter(context: Context, data: MutableList<ItemModel>?) :
 
     override
     fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemViewHolder {
-        val view = inflater.inflate(R.layout.item_headlines, parent, false)
+        val view = inflater.inflate(R.layout.item_items, parent, false)
         return ItemViewHolder(view)
     }
 
@@ -42,11 +45,22 @@ class ItemAdapter(context: Context, data: MutableList<ItemModel>?) :
     fun onBindViewHolder(holder: ItemViewHolder, position: Int) {
         val item = items?.get(position)
 
-        holder.tvTitle.text = item?.barCode
-        val key = item?.RecordKey
+        val expiryDate = item?.spoildate
+        val diff: Int = ceil((expiryDate!!.time - Calendar.getInstance().timeInMillis).toFloat() / 86400000).toInt()
+        val key = item.RecordKey
         val pos = items?.indexOfFirst {it.RecordKey == key}
-        holder.tvDescription.text = item?.spoildate?.let { formatter.format(it) }
+        holder.tvspoildate.text = expiryDate.let { formatter.format(it) }
+        holder.tvDaysLeft.text = diff.toString()
         holder.deleteButton.setOnClickListener {delete(pos, key)}
+
+        if (diff <= 3){
+            holder.tvspoildate.setTextColor(Color.parseColor("RED"))
+            holder.tvDaysLeft.setTextColor(Color.parseColor("RED"))
+        }
+        else {
+            holder.tvspoildate.setTextColor(Color.parseColor("#80000000"))
+            holder.tvDaysLeft.setTextColor(Color.parseColor("#80000000"))
+        }
 
     }
 
@@ -67,8 +81,8 @@ class ItemAdapter(context: Context, data: MutableList<ItemModel>?) :
     }
 
     class ItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        var tvTitle: TextView = itemView.findViewById(R.id.tvTitle)
-        var tvDescription: TextView = itemView.findViewById(R.id.tvDescription)
+        var tvspoildate: TextView = itemView.findViewById(R.id.tvspoildate)
+        var tvDaysLeft: TextView = itemView.findViewById(R.id.tvDaysLeft)
         var deleteButton: ImageView = itemView.findViewById(R.id.deleteButton)
 
     }

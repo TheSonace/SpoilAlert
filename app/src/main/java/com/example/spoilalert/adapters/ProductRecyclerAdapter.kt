@@ -2,6 +2,8 @@ package com.example.spoilalert.adapters
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Color
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,6 +14,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.spoilalert.R
 import com.example.spoilalert.models.ProductModel
 import java.text.SimpleDateFormat
+import java.time.LocalDateTime
+import java.util.Calendar
+import java.util.concurrent.TimeUnit
+import kotlin.math.ceil
+import kotlin.time.Duration.Companion.milliseconds
 
 
 class ProductAdapter(context: Context, data: MutableList<ProductModel>?) :
@@ -25,7 +32,7 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?) :
 
     override
     fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductViewHolder {
-        val view = inflater.inflate(R.layout.item_news_paper, parent, false)
+        val view = inflater.inflate(R.layout.item_products, parent, false)
         return ProductViewHolder(view)
     }
 
@@ -46,15 +53,40 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?) :
         holder.rvHeadlines.adapter = itemAdapter
         holder.rvHeadlines.layoutManager = LinearLayoutManager(mContext)
         holder.ivArrow.setOnClickListener { onItemClicked(item) }
-        holder.tvDate.text = item?.item_data?.get(0)?.spoildate?.let { formatter.format(it) }
-        if (item?.isExpanded!!) {
+        val expiryDate = item?.item_data?.get(0)?.spoildate
+
+        val diff: Int = ceil((expiryDate!!.time - Calendar.getInstance().timeInMillis).toFloat() / 86400000).toInt()
+        holder.tvDate.text = expiryDate.let { formatter.format(it) }
+        holder.tvDaysLeft.text = diff.toString()
+        holder.tvProductQty.text = item.item_data.size.toString()
+
+        if (diff <= 3){
+            holder.tvDate.setTextColor(Color.parseColor("RED"))
+            holder.tvDaysLeft.setTextColor(Color.parseColor("RED"))
+        }
+        else {
+            holder.tvDate.setTextColor(Color.parseColor("#80000000"))
+            holder.tvDaysLeft.setTextColor(Color.parseColor("#80000000"))
+        }
+
+        if (item.isExpanded!!) {
             holder.rvHeadlines.visibility = View.VISIBLE
             holder.ivArrow.setImageResource(R.drawable.ic_arrow_up)
-            holder.tvDate.visibility = View.INVISIBLE
+            holder.tvQtyText.visibility = View.GONE
+            holder.tvProductQty.visibility = View.GONE
+            holder.tvDateText.visibility = View.GONE
+            holder.tvDate.visibility = View.GONE
+            holder.tvDaysLeftText.visibility = View.GONE
+            holder.tvDaysLeft.visibility = View.GONE
         } else {
             holder.rvHeadlines.visibility = View.GONE
             holder.ivArrow.setImageResource(R.drawable.ic_arrow_down)
+            holder.tvQtyText.visibility = View.VISIBLE
+            holder.tvProductQty.visibility = View.VISIBLE
+            holder.tvDateText.visibility = View.VISIBLE
             holder.tvDate.visibility = View.VISIBLE
+            holder.tvDaysLeftText.visibility = View.VISIBLE
+            holder.tvDaysLeft.visibility = View.VISIBLE
         }
     }
 
@@ -69,8 +101,13 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?) :
     }
 
     class ProductViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        var tvName: TextView = itemView.findViewById(R.id.tvPaperName)
+        var tvName: TextView = itemView.findViewById(R.id.tvProductName)
+        var tvQtyText: TextView = itemView.findViewById(R.id.tvQtyText)
+        var tvProductQty: TextView = itemView.findViewById(R.id.tvProductQty)
+        var tvDateText: TextView = itemView.findViewById(R.id.tvDateText)
         var tvDate: TextView = itemView.findViewById(R.id.tvspoildate)
+        var tvDaysLeftText: TextView = itemView.findViewById(R.id.tvDaysLeftText)
+        var tvDaysLeft: TextView = itemView.findViewById(R.id.tvDaysLeft)
         var rvHeadlines: RecyclerView = itemView.findViewById(R.id.rvHeadlines)
         var ivArrow: ImageView = itemView.findViewById(R.id.ivArrow)
     }

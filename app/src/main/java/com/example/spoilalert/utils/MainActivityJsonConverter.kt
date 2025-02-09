@@ -26,7 +26,7 @@ open class JsonConverter(private var context: Context, data: List<Selectjson>) {
                 rawjson, Array<ItemModel>::class.java
             ).toMutableList()
             // map grouped class
-            val groupedClass = data.groupBy { it.barCode }
+            val groupedClass = data.groupBy { it.Item }
                 .map {
                     it.value.minByOrNull { Data2 -> Data2.spoildate }?.let { it1 ->
                         ProductModel(

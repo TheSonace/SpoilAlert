@@ -7,8 +7,8 @@ import java.util.Date
 data class ItemModel(
     @SerializedName("RecordKey")
     val RecordKey: Int,
-    @SerializedName("barCode")
-    val barCode: String,
+    @SerializedName("Item")
+    val Item: String,
     @SerializedName("spoildate")
     val spoildate: Date
 ) : Serializable
