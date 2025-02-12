@@ -11,6 +11,8 @@
     <color name="colorPrimaryDark">#00574B</color>
     <color name="colorAccent">#D81B60</color>
     <color name="colorWhite">#FFFFFF</color>
-    <color name="colorBgMain">#F1F0F0</color>
-    <color name="colorBgItemHeadlines">#DAEDFC</color>
+    <color name="colorBgMain">#dce0d9</color>
+    <color name="colorTitle">#68b0ab</color>
+    <color name="colorBgProduct">#fbf6ef</color>
+    <color name="colorBgItem">#ead7c3</color>
 </resources>

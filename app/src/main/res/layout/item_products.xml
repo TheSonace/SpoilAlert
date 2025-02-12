@@ -3,106 +3,115 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginStart="16dp"
-    android:layout_marginTop="36dp"
-    android:layout_marginEnd="16dp"
-    android:background="@color/colorWhite"
+    android:layout_marginStart="8dp"
+    android:layout_marginEnd="8dp"
+    android:layout_marginBottom="8dp"
+    android:padding="4dp"
+    android:background="@drawable/rounded_edge_product"
     android:orientation="vertical">
 
-    <LinearLayout
-        android:id="@+id/mainLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-    <LinearLayout
+    <RelativeLayout
+        android:id="@+id/tvTitleLayout"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <TextView
-            android:id="@+id/tvProductText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/tvProductText"
-            android:textAlignment="viewEnd"
-            />
-
-        <TextView
-            android:id="@+id/tvQtyText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/tvQtyText"
-            android:textAlignment="viewEnd"
-            />
-
-        <TextView
-            android:id="@+id/tvDateText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/tvDateText"
-            android:textAlignment="viewEnd"
-            />
-
-        <TextView
-            android:id="@+id/tvDaysLeftText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/tvDaysLeftText"
-            android:textAlignment="viewEnd"
-            />
-
-    </LinearLayout>
-
-        <View
-            android:layout_width="12dp"
-            android:layout_height="match_parent" />
-
-        <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="wrap_content">
 
         <TextView
             android:id="@+id/tvProductName"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            />
-
-        <TextView
-            android:id="@+id/tvProductQty"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            />
-
-        <TextView
-            android:id="@+id/tvspoildate"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            />
-
-        <TextView
-            android:id="@+id/tvDaysLeft"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            />
-
-    </LinearLayout>
-
-        <View
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_alignParentStart="true"
+            android:layout_toStartOf="@+id/ivArrow"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/colorTitle"
+            android:padding="8dp"
             />
 
         <ImageView
             android:id="@+id/ivArrow"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
             android:contentDescription="@string/img_description"
             android:src="@drawable/ic_arrow_down"
             />
+    </RelativeLayout>
+
+
+    <LinearLayout
+        android:id="@+id/mainLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_below="@+id/tvTitleLayout"
+        >
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            >
+
+            <TextView
+                android:id="@+id/tvQtyText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/tvQtyText"
+                android:textAlignment="viewEnd"
+                android:textStyle="bold"
+                />
+
+            <TextView
+                android:id="@+id/tvDateText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/tvDateText"
+                android:textAlignment="viewEnd"
+                android:textStyle="bold"
+                />
+
+            <TextView
+                android:id="@+id/tvDaysLeftText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/tvDaysLeftText"
+                android:textAlignment="viewEnd"
+                android:textStyle="bold"
+                />
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="12dp"
+            android:layout_height="match_parent"
+            />
+
+        <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+            >
+
+            <TextView
+                android:id="@+id/tvProductQty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                />
+
+            <TextView
+                android:id="@+id/tvspoildate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                />
+
+            <TextView
+                android:id="@+id/tvDaysLeft"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                />
+
+        </LinearLayout>
 
     </LinearLayout>
 
