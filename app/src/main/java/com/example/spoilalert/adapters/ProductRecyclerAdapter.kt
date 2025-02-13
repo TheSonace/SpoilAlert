@@ -53,20 +53,21 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?) :
         holder.rvHeadlines.adapter = itemAdapter
         holder.rvHeadlines.layoutManager = LinearLayoutManager(mContext)
         holder.ivArrow.setOnClickListener { onItemClicked(item) }
+        holder.tvName.setOnClickListener { onItemClicked(item) }
         val expiryDate = item?.item_data?.get(0)?.spoildate
 
         val diff: Int = ceil((expiryDate!!.time - Calendar.getInstance().timeInMillis).toFloat() / 86400000).toInt()
         holder.tvDate.text = expiryDate.let { formatter.format(it) }
-        holder.tvDaysLeft.text = diff.toString()
+//        holder.tvDaysLeft.text = diff.toString()
         holder.tvProductQty.text = item.item_data.size.toString()
 
         if (diff <= 3){
             holder.tvDate.setTextColor(Color.parseColor("RED"))
-            holder.tvDaysLeft.setTextColor(Color.parseColor("RED"))
+//            holder.tvDaysLeft.setTextColor(Color.parseColor("RED"))
         }
         else {
             holder.tvDate.setTextColor(Color.parseColor("#80000000"))
-            holder.tvDaysLeft.setTextColor(Color.parseColor("#80000000"))
+//            holder.tvDaysLeft.setTextColor(Color.parseColor("#80000000"))
         }
 
         if (item.isExpanded!!) {
@@ -76,8 +77,8 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?) :
             holder.tvProductQty.visibility = View.GONE
             holder.tvDateText.visibility = View.GONE
             holder.tvDate.visibility = View.GONE
-            holder.tvDaysLeftText.visibility = View.GONE
-            holder.tvDaysLeft.visibility = View.GONE
+//            holder.tvDaysLeftText.visibility = View.GONE
+//            holder.tvDaysLeft.visibility = View.GONE
         } else {
             holder.rvHeadlines.visibility = View.GONE
             holder.ivArrow.setImageResource(R.drawable.ic_arrow_down)
@@ -85,8 +86,8 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?) :
             holder.tvProductQty.visibility = View.VISIBLE
             holder.tvDateText.visibility = View.VISIBLE
             holder.tvDate.visibility = View.VISIBLE
-            holder.tvDaysLeftText.visibility = View.VISIBLE
-            holder.tvDaysLeft.visibility = View.VISIBLE
+//            holder.tvDaysLeftText.visibility = View.VISIBLE
+//            holder.tvDaysLeft.visibility = View.VISIBLE
         }
     }
 
@@ -106,8 +107,8 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?) :
         var tvProductQty: TextView = itemView.findViewById(R.id.tvProductQty)
         var tvDateText: TextView = itemView.findViewById(R.id.tvDateText)
         var tvDate: TextView = itemView.findViewById(R.id.tvspoildate)
-        var tvDaysLeftText: TextView = itemView.findViewById(R.id.tvDaysLeftText)
-        var tvDaysLeft: TextView = itemView.findViewById(R.id.tvDaysLeft)
+//        var tvDaysLeftText: TextView = itemView.findViewById(R.id.tvDaysLeftText)
+//        var tvDaysLeft: TextView = itemView.findViewById(R.id.tvDaysLeft)
         var rvHeadlines: RecyclerView = itemView.findViewById(R.id.rvHeadlines)
         var ivArrow: ImageView = itemView.findViewById(R.id.ivArrow)
     }

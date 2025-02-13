@@ -91,6 +91,7 @@ class BarcodeScan : AppCompatActivity() {
     }
 
     private fun iniBc(){
+        activeScanBoolean = 0
         barcodeDetector = BarcodeDetector.Builder(this)
             .setBarcodeFormats(Barcode.ALL_FORMATS)
             .build()
@@ -118,13 +119,13 @@ class BarcodeScan : AppCompatActivity() {
 
             override fun surfaceDestroyed(holder: SurfaceHolder) {
                 cameraSource.stop()
-                Toast.makeText(applicationContext, "returning to main()", Toast.LENGTH_SHORT).show()
+                Toast.makeText(applicationContext, "Returning to Home Screen", Toast.LENGTH_SHORT).show()
             }
 
         })
         barcodeDetector.setProcessor(object : Detector.Processor<Barcode>{
             override fun release() {
-                Toast.makeText(applicationContext, "barcode scanner has been stopped", Toast.LENGTH_SHORT).show()
+                Toast.makeText(applicationContext, "Scanning has been stopped, returning to home screen.", Toast.LENGTH_SHORT).show()
             }
 
             override fun receiveDetections(detections: Detector.Detections<Barcode>) {

@@ -8,5 +8,5 @@
     <string name="tvQtyText">Qty: </string>
     <string name="tvDateText">Next Expiry Date: </string>
     <string name="tvExpiryDateText">Expiry Date: </string>
-    <string name="tvDaysLeftText">Days to Expiry: </string>
+    <string name="tvDaysLeftText">Days Left: </string>
 </resources>
