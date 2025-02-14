@@ -134,8 +134,6 @@ class BarcodeScan : AppCompatActivity() {
                     if(barcodes.size()!=0){
                         val getbarcode = barcodes.valueAt(0).displayValue
                         if(latestbarcodescan != getbarcode){
-
-                            Log.d("barcode read", getbarcode)
                             latestbarcodescan = getbarcode
                             val viewFlipper = binding.myViewFlipper
                             try {productQueries.localcheck(getbarcode).executeAsList()[0]}
@@ -177,7 +175,6 @@ class BarcodeScan : AppCompatActivity() {
         val viewFlipper = binding.myViewFlipper
         if (viewFlipper.displayedChild == viewFlipper.indexOfChild(binding.flipperMedia.main2)){
             switchToScan()
-            Log.d("TAG", "re-initiated iniBc?")
         }
         else {super.onBackPressed()}
         //super.onBackPressed();
@@ -223,13 +220,7 @@ class BarcodeScan : AppCompatActivity() {
     }
 
     private fun addItemtoDB(spoildate: String) {
-        Log.d("loop_nr", itemtobeAdded.toString())
-        Log.d("item_required", itemsRequired.toString())
         scandatetime = sdf.format(Calendar.getInstance().time).toString()
-        Log.d("TAG", latestbarcodescan)
-        Log.d("TAG", scandatetime)
-        Log.d("TAG", spoildate)
-        Log.d("TAG", "Added")
         itemQueries.insert(latestbarcodescan, spoildate, scandatetime)
         Toast.makeText(applicationContext, "Item " + itemtobeAdded + " of " + itemsRequired + " has been saved", Toast.LENGTH_SHORT).show()
         if (itemtobeAdded == itemsRequired){
@@ -242,29 +233,26 @@ class BarcodeScan : AppCompatActivity() {
 
     private fun removeItemfromDB() {
         scandatetime = sdf.format(Calendar.getInstance().time).toString()
-        Log.d("TAG", latestbarcodescan)
-        Log.d("TAG", scandatetime)
-        Log.d("TAG", "Removed")
         itemQueries.removedfromstock(scandatetime, latestbarcodescan, latestbarcodescan)
         Toast.makeText(applicationContext, "Item has been removed", Toast.LENGTH_SHORT).show()
         switchToScan()
     }
+}
 
-    fun loadImageFromWebOperations(src: String): Bitmap? {
-        try {
-            Log.e("src", src)
-            val url = URL(src)
-            val connection = url.openConnection() as HttpURLConnection
-            connection.doInput = true
-            connection.connect()
-            val input = connection.inputStream
-            val myBitmap = BitmapFactory.decodeStream(input)
-            Log.e("Bitmap", "returned")
-            return myBitmap
-        } catch (e: IOException) {
-            e.printStackTrace()
-            Log.e("Exception", e.message!!)
-            return null
-        }
+fun loadImageFromWebOperations(src: String): Bitmap? {
+    try {
+        Log.e("src", src)
+        val url = URL(src)
+        val connection = url.openConnection() as HttpURLConnection
+        connection.doInput = true
+        connection.connect()
+        val input = connection.inputStream
+        val myBitmap = BitmapFactory.decodeStream(input)
+        Log.e("Bitmap", "returned")
+        return myBitmap
+    } catch (e: IOException) {
+        e.printStackTrace()
+        Log.e("Exception", e.message!!)
+        return null
     }
 }

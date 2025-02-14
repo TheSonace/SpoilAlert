@@ -1,27 +1,13 @@
 package com.example.spoilalert
 
 import android.content.Intent
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.PorterDuff
-import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.os.Handler
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
-import android.widget.Button
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
@@ -29,19 +15,19 @@ import com.example.DBInfoQueries
 import com.example.spoilalert.adapters.ProductAdapter
 import com.example.spoilalert.databinding.ActivityMainBinding
 import com.example.spoilalert.enginebuilder.OpenFoodFactsKtorClient
+import com.example.spoilalert.models.ProductModel
 import com.example.spoilalert.utils.JsonConverter
 
 class MainActivity : ComponentActivity() {
     val ktorclient = OpenFoodFactsKtorClient()
-    private val testbarcode = "8718166011199"
     private var requestCamera: ActivityResultLauncher<String>? = null
     private lateinit var binding: ActivityMainBinding
     val driver = AndroidSqliteDriver(Database.Schema, this, "launch.db")
     val database = Database(driver)
     val itemQueries = database.itemQueries
-    private val productQueries = database.productQueries
     private val dbinfoQueries = database.dBInfoQueries
     var mRecyclerView: RecyclerView? = null
+    private val productQueries = database.productQueries
 
     override fun onCreate(savedInstanceState: Bundle?) {
 //        itemQueries.deleteAll()
@@ -68,12 +54,12 @@ class MainActivity : ComponentActivity() {
 
     private fun iniBc(){
         val allitems = itemQueries.selectjson().executeAsList()
-        Log.d("Items Found", itemQueries.selectAll().executeAsList().toString())
         mRecyclerView = binding.recyclerView
-        val adapter = ProductAdapter(this, JsonConverter(this, allitems).getItemData())
+        val adapter = ProductAdapter(this, JsonConverter(this, allitems).getItemData(), binding)
         mRecyclerView!!.adapter = adapter
         mRecyclerView!!.layoutManager = LinearLayoutManager(this)
     }
+
 
     private fun dbUpdateManager(dbinfoQueries: DBInfoQueries, driver: AndroidSqliteDriver) {
         var versionNr = '1'.toString()
@@ -102,5 +88,29 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         iniBc()
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onBackPressed() {
+        val viewFlipper = binding.myViewFlipper
+        if (viewFlipper.displayedChild == viewFlipper.indexOfChild(binding.flipperMedia.productView)){
+            returnToMain()
+        }
+        else {super.onBackPressed()}
+        //super.onBackPressed();
+    }
+
+    fun returnToMain() {
+        val viewFlipper = binding.myViewFlipper
+        viewFlipper.displayedChild = viewFlipper.indexOfChild(binding.main)
+    }
+
+    companion object {
+        fun openPreview(productpreviewlist: String, binding: ActivityMainBinding) {
+            val viewFlipper = binding.myViewFlipper
+            val img = loadImageFromWebOperations(productpreviewlist)
+            binding.flipperMedia.imageView.setImageBitmap(img)
+            viewFlipper.displayedChild = viewFlipper.indexOfChild(binding.flipperMedia.productView)
+        }
     }
 }

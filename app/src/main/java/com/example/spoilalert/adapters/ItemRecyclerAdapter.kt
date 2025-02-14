@@ -3,7 +3,6 @@ package com.example.spoilalert.adapters
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,7 +16,6 @@ import com.example.spoilalert.models.ItemModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
-import java.util.concurrent.TimeUnit
 import kotlin.math.ceil
 
 
@@ -37,7 +35,7 @@ class ItemAdapter(context: Context, data: MutableList<ItemModel>?) :
 
     override
     fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemViewHolder {
-        val view = inflater.inflate(R.layout.item_items, parent, false)
+        val view = inflater.inflate(R.layout.activity_main_items, parent, false)
         return ItemViewHolder(view)
     }
 

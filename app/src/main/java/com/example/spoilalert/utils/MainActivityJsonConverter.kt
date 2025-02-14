@@ -30,7 +30,7 @@ open class JsonConverter(private var context: Context, data: List<Selectjson>) {
                 .map {
                     it.value.minByOrNull { Data2 -> Data2.spoildate }?.let { it1 ->
                         ProductModel(
-                            it.key, it.value.toMutableList(), it.value.count(),
+                            it.key, it1.barCode, it.value.toMutableList(), it.value.count(),
                             it1.spoildate
                         )
                     }

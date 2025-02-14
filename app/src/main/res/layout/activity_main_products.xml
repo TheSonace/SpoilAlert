@@ -20,11 +20,21 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
-            android:layout_toStartOf="@+id/ivArrow"
+            android:layout_toStartOf="@+id/prodInfo"
             android:textSize="16sp"
             android:textStyle="bold"
             android:textColor="@color/colorTitle"
             android:padding="8dp"
+            />
+
+        <ImageView
+            android:id="@+id/prodInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toStartOf="@+id/ivArrow"
+            android:layout_centerVertical="true"
+            android:contentDescription="@string/img_description"
+            android:src="@drawable/ic_menu_info"
             />
 
         <ImageView

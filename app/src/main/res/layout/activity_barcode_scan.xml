@@ -29,7 +29,7 @@
     </RelativeLayout>
 
     <include
-        layout="@layout/barcode_preview"
+        layout="@layout/activity_barcode_scan_preview"
         android:id="@+id/flipper_media" />
 
 </ViewFlipper>

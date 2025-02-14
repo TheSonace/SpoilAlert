@@ -8,6 +8,8 @@ import java.util.Date
 data class ProductModel(
     @SerializedName("name")
     var name: String,
+    @SerializedName("barCode")
+    var barCode: String,
     @SerializedName("item_data")
     var item_data: MutableList<ItemModel>,
     @SerializedName("item_count")
