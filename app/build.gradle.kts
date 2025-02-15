@@ -71,6 +71,8 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
+    val kotlin_version = "1.7.0"
+    implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

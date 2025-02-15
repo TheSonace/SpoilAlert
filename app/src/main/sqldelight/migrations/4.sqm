@@ -1,0 +1,13 @@
+ALTER TABLE product_data ADD COLUMN barCode_original TEXT NOT NULL DEFAULT 0;
+ALTER TABLE product_data ADD COLUMN brand_original TEXT NOT NULL DEFAULT 0;
+ALTER TABLE product_data ADD COLUMN product_original TEXT NOT NULL DEFAULT 0;
+ALTER TABLE product_data ADD COLUMN product_url_original TEXT NOT NULL DEFAULT 0;
+ALTER TABLE product_data ADD COLUMN image_original TEXT NOT NULL DEFAULT 0;
+
+UPDATE product_data SET barCode_original = barCode;
+UPDATE product_data SET brand_original = brand;
+UPDATE product_data SET product_original = product;
+UPDATE product_data SET product_url_original = product_url;
+UPDATE product_data SET image_original = image;
+
+UPDATE DBInfo SET user_version = 4;

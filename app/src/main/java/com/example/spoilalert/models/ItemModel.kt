@@ -11,6 +11,10 @@ data class ItemModel(
     var barCode: String,
     @SerializedName("Item")
     val Item: String,
+    @SerializedName("brand")
+    var brand: String,
+    @SerializedName("product")
+    var product: String,
     @SerializedName("spoildate")
     val spoildate: Date
 ) : Serializable

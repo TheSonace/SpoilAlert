@@ -64,8 +64,9 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?,
         holder.rvHeadlines.layoutManager = LinearLayoutManager(mContext)
         holder.tvName.setOnClickListener { onItemClicked(item) }
         holder.prodInfo.setOnClickListener {
+
             val productpreviewlist = productQueries.getimg(item!!.barCode).executeAsList()[0]
-            MainActivity.openPreview(productpreviewlist, binding)
+            MainActivity.openPreview(productpreviewlist, item, binding)
             }
 
         holder.ivArrow.setOnClickListener { onItemClicked(item) }

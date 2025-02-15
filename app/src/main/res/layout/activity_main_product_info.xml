@@ -3,13 +3,53 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/productView"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent">
+    android:layout_height="fill_parent"
+    android:background="@color/colorBgMain"
+    >
 
     <ImageView
         android:id="@+id/imageView"
         android:layout_alignParentTop="true"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:scaleType="fitXY"/>
+        android:layout_above="@id/tvProductName"
+        android:scaleType="fitXY"
+        />
+
+    <TextView
+        android:id="@+id/tvProductName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_toStartOf="@id/center"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:textColor="@color/colorTitle"
+        android:layout_marginBottom="32dp"
+        />
+
+    <TextView
+        android:id="@+id/center"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerInParent="true"
+        android:textColor="@color/colorTitle"
+        android:layout_marginBottom="32dp"
+        />
+
+    <TextView
+        android:id="@+id/tvProductBrand"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_toEndOf="@id/center"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:textColor="@color/colorTitle"
+        android:layout_marginBottom="32dp"
+        />
 
 </RelativeLayout>

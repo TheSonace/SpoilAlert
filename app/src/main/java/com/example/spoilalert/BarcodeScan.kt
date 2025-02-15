@@ -14,6 +14,8 @@ import androidx.lifecycle.lifecycleScope
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.example.spoilalert.databinding.ActivityBarcodeScanBinding
 import com.example.spoilalert.enginebuilder.OpenFoodFactsKtorClient
+import com.example.spoilalert.model.SelectedImage
+import com.example.spoilalert.model.SelectedImages
 import com.google.android.gms.vision.CameraSource
 import com.google.android.gms.vision.Detector
 import com.google.android.gms.vision.barcode.Barcode
@@ -26,6 +28,9 @@ import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import kotlin.reflect.full.declaredMemberFunctions
+import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.full.primaryConstructor
 
 
 var latestbarcodescan = ""
@@ -193,20 +198,33 @@ class BarcodeScan : AppCompatActivity() {
         activeScanBoolean = 0
     }
 
+    operator fun get(index: Int) {}
     suspend fun downloadProduct(getbarcode: String) {
-            val json = ktorclient.fetchProductByCode(getbarcode)
-            val brand = json.product?.brands.toString()
-            val product = json.product?.productName.toString()
-            val productUrl = ktorclient.createProductUrl(getbarcode).toString()
-            val image = json.product?.imageFrontUrl.toString()
-            val status = json.status.toString()
 
-            productQueries.insert(
+        val json = ktorclient.fetchProductByCode(getbarcode)
+        val brand = json.product?.brands.toString()
+        val product = json.product?.productName.toString()
+        val status = json.status.toString()
+        val productUrl = ktorclient.createProductUrl(getbarcode).toString()
+//        val nutriments = json.product?.nutriments?.other
+        val image = json.product?.imageFrontUrl.toString()
+
+//        if (nutriments != null) {
+//            Log.d("string of nutriments", nutriments.toString())
+//            Log.d("string of nutriments count", nutriments.count().toString())
+//        }
+
+            productQueries.insert_new(
+                getbarcode,
                 getbarcode,
                 brand,
+                brand,
+                product,
                 product,
                 status,
                 productUrl,
+                productUrl,
+                image,
                 image,
                 sdf.format(cal.time)
             )

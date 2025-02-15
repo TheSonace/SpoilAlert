@@ -1,5 +1,6 @@
 package com.example.spoilalert
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -31,7 +32,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
 //        itemQueries.deleteAll()
-        dbUpdateManager(dbinfoQueries, driver)
+//        productQueries.deleteAll()
+        dbUpdateManager()
 
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -61,28 +63,39 @@ class MainActivity : ComponentActivity() {
     }
 
 
-    private fun dbUpdateManager(dbinfoQueries: DBInfoQueries, driver: AndroidSqliteDriver) {
-        var versionNr = '1'.toString()
-        try {
-            versionNr = dbinfoQueries.get_latest().executeAsOne().toString()
-        } catch (_: Exception) {
-        }
-        Log.d("Software version:", "Current Software Version: " + versionNr)
+    private fun dbUpdateManager() {
+        var versionNr = try {
+            dbinfoQueries.get_latest().executeAsOne().toString()
+        } catch (_: Exception) {"1"}
+        Log.d("Software version:", "Current Software Version: $versionNr")
         if (versionNr == "1") {
             try {
                 Database.Schema.migrate(driver, oldVersion = 1, newVersion = 2)
-            } catch (_: RuntimeException) {
-            }
+                Log.d("Software version", "Software updated to Version: $versionNr")
+            } catch (_: RuntimeException) {}
             versionNr = "2"
-            Log.d("Software version", "Software updated to Version: " + versionNr)
         }
         if (versionNr == "2") {
-            Database.Schema.migrate(driver, oldVersion = 2, newVersion = 3)
-            dbinfoQueries.insert(3)
+            try {
+                Database.Schema.migrate(driver, oldVersion = 2, newVersion = 3)
+                Log.d("Software version", "Software updated to Version: $versionNr")
+            } catch (_: RuntimeException) {
+                Log.e("Software version", "Software failed to update to Version: $versionNr")
+            }
             versionNr = "3"
-            Log.d("Software version", "Software updated to Version: " + versionNr)
         }
-//    Log.d("test", dbinfoQueries.get_all().executeAsList().toString())
+        if (versionNr == "3") {
+            try {
+                Database.Schema.migrate(driver, oldVersion = 3, newVersion = 4)
+                Log.d("Software version", "Software updated to Version: $versionNr")
+            } catch (_: RuntimeException) {
+                Log.e("Software version", "Software failed to update to Version: $versionNr")
+            }
+            versionNr = "4"
+            // DO NOT FORGET TO SET INITIAL TABLE GENERATION DB VERSION IF UPDATING. CURRENTLY SET TO VERSION 4
+        }
+        Log.d("GetAllProducts", productQueries.selectAll().executeAsList().toString())
+        Log.d("GetAllDBInfo", dbinfoQueries.selectAll().executeAsList().toString())
     }
 
     override fun onResume() {
@@ -106,10 +119,13 @@ class MainActivity : ComponentActivity() {
     }
 
     companion object {
-        fun openPreview(productpreviewlist: String, binding: ActivityMainBinding) {
+        @SuppressLint("SetTextI18n")
+        fun openPreview(productpreviewlist: String, item: ProductModel, binding: ActivityMainBinding) {
             val viewFlipper = binding.myViewFlipper
             val img = loadImageFromWebOperations(productpreviewlist)
             binding.flipperMedia.imageView.setImageBitmap(img)
+            binding.flipperMedia.tvProductName.text = item.product + ", "
+            binding.flipperMedia.tvProductBrand.text = item.brand
             viewFlipper.displayedChild = viewFlipper.indexOfChild(binding.flipperMedia.productView)
         }
     }

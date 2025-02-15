@@ -4,16 +4,11 @@ CREATE TABLE IF NOT EXISTS DBInfo (
 );
 
 INSERT INTO DBInfo (user_version)
-VALUES(3);
+VALUES(4);
 
-insert:
-INSERT INTO DBInfo (user_version)
-VALUES(?);
-
-deleteAll:
+selectAll:
 SELECT *
-FROM DBInfo
-ORDER BY RecordKey DESC;
+FROM DBInfo;
 
 get_latest:
 SELECT user_version

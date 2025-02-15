@@ -1,12 +1,17 @@
 CREATE TABLE IF NOT EXISTS product_data (
   RecordKey INTEGER PRIMARY KEY AUTOINCREMENT,
   barCode TEXT NOT NULL,
+  barCode_original TEXT NOT NULL,
   brand TEXT NOT NULL,
+  brand_original TEXT NOT NULL,
   product TEXT NOT NULL,
+  product_original TEXT NOT NULL,
   status TEXT,
   product_url TEXT NOT NULL,
+  product_url_original TEXT NOT NULL,
   image TEXT NOT NULL,
-  last_updated TEXT
+  image_original TEXT NOT NULL,
+  last_updated TEXT NOT NULL
 );
 
 selectAll:
@@ -29,6 +34,7 @@ getimg:
 SELECT image
 FROM product_data WHERE barCode = :barcode;
 
-insert:
-INSERT INTO product_data (barCode, brand, product, status, product_url, image, last_updated)
-VALUES(?, ?, ?, ?, ?, ?, ?);
+insert_new:
+INSERT INTO product_data (barCode, barCode_original, brand, brand_original, product, product_original, status, product_url, product_url_original, image
+, image_original, last_updated)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
