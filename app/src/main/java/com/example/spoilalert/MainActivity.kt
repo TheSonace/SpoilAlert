@@ -1,9 +1,13 @@
 package com.example.spoilalert
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
+import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
@@ -12,12 +16,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
-import com.example.DBInfoQueries
 import com.example.spoilalert.adapters.ProductAdapter
 import com.example.spoilalert.databinding.ActivityMainBinding
 import com.example.spoilalert.enginebuilder.OpenFoodFactsKtorClient
 import com.example.spoilalert.models.ProductModel
 import com.example.spoilalert.utils.JsonConverter
+
 
 class MainActivity : ComponentActivity() {
     val ktorclient = OpenFoodFactsKtorClient()
@@ -51,15 +55,64 @@ class MainActivity : ComponentActivity() {
                 Toast.makeText(this, "Permission Not Granted", Toast.LENGTH_SHORT).show()
             }
         }
-        binding.startscanbutton.setOnClickListener() { requestCamera?.launch(android.Manifest.permission.CAMERA) }
+        binding.startscanbutton.setOnClickListener() {
+            requestCamera?.launch(android.Manifest.permission.CAMERA)
+        }
+
+        binding.flipperMedia.tvProductName.setOnClickListener{
+            updateProductInfoDialog("ProductName", binding.flipperMedia.tvProductName.text.toString(), binding.flipperMedia.tvbarCode.text.toString())
+        }
+
+        binding.flipperMedia.tvProductBrand.setOnClickListener{
+            updateProductInfoDialog("ProductBrand", binding.flipperMedia.tvProductBrand.text.toString(), binding.flipperMedia.tvbarCode.text.toString())
+        }
     }
 
-    private fun iniBc(){
+    fun iniBc(){
         val allitems = itemQueries.selectjson().executeAsList()
         mRecyclerView = binding.recyclerView
         val adapter = ProductAdapter(this, JsonConverter(this, allitems).getItemData(), binding)
         mRecyclerView!!.adapter = adapter
         mRecyclerView!!.layoutManager = LinearLayoutManager(this)
+    }
+
+    private fun updateProductInfoDialog(item: String, value: String, barCode: String) {
+        val columnName = item.replace(", ", "")
+        var newItem : String = ""
+        if (columnName == "ProductName") { newItem = "Product Name"}
+        if (columnName == "ProductBrand") { newItem = "Product Brand"}
+
+        val newValue = value.replace(", ", "")
+        Log.e("Product Info Update", barCode)
+        Log.e("Product Info Update", newItem)
+        Log.e("Product Info Update", newValue)
+
+        // create an alert builder
+        val builder: AlertDialog.Builder = AlertDialog.Builder(this)
+        builder.setTitle(newItem)
+        // set the custom layout
+        val customLayout: View = layoutInflater.inflate(R.layout.dialog_update_product_info, null)
+        builder.setView(customLayout)
+        // add a button
+        builder.setPositiveButton(
+            "Update",
+            DialogInterface.OnClickListener { dialog, which -> // do something with response
+                val editText = customLayout.findViewById<EditText>(R.id.editText).text.toString()
+                Log.e("Product Info new Update", editText)
+                if (columnName == "ProductName") {
+                    productQueries.update_product(editText, newValue, barCode)
+                    binding.flipperMedia.tvProductName.text = editText + ", "
+                    iniBc()
+                }
+                if (columnName == "ProductBrand") {
+                    productQueries.update_brand(editText, newValue, barCode)
+                    binding.flipperMedia.tvProductBrand.text = editText
+                    iniBc()
+                }
+            })
+        // create and show the alert dialog
+        val dialog: AlertDialog = builder.create()
+        dialog.show()
     }
 
 
@@ -126,6 +179,7 @@ class MainActivity : ComponentActivity() {
             binding.flipperMedia.imageView.setImageBitmap(img)
             binding.flipperMedia.tvProductName.text = item.product + ", "
             binding.flipperMedia.tvProductBrand.text = item.brand
+            binding.flipperMedia.tvbarCode.text = item.barCode
             viewFlipper.displayedChild = viewFlipper.indexOfChild(binding.flipperMedia.productView)
         }
     }

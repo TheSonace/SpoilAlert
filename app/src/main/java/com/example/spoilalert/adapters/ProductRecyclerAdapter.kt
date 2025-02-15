@@ -53,35 +53,60 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?,
         if (animator != null) {
             animator.removeDuration = 0
         }
+
         val item = items?.get(position)
 
-        holder.tvName.text = item?.name
-        if (item != null) {
-            holder.tvDate.text = formatter.format(item.min_spoildate)
+        if (item!!.item_data.isEmpty() && items!!.size < 2) {
+            binding.introText.visibility = View.VISIBLE
+            binding.introButton.visibility = View.VISIBLE
         }
-        itemAdapter = ItemAdapter(mContext, item?.item_data)
+        else {
+            binding.introText.visibility = View.GONE
+            binding.introButton.visibility = View.GONE
+        }
+
+        if (item.item_data.isEmpty()) {
+            val key = item.item_data
+            val pos = items?.indexOfFirst {it.item_data == key}
+            if (pos != null) {
+                items?.removeAt(pos)
+                holder.rvHeadlines.post(Runnable {
+                    notifyDataSetChanged()
+                    try { notifyItemRangeChanged(pos, itemCount) }
+                    catch (_: IndexOutOfBoundsException) {}
+
+                })
+            }
+        }
+
+        holder.tvName.text = item.name
+        holder.tvDate.text = formatter.format(item.min_spoildate)
+        itemAdapter = ItemAdapter(mContext, item.item_data)
         holder.rvHeadlines.adapter = itemAdapter
         holder.rvHeadlines.layoutManager = LinearLayoutManager(mContext)
         holder.tvName.setOnClickListener { onItemClicked(item) }
-        holder.prodInfo.setOnClickListener {
 
-            val productpreviewlist = productQueries.getimg(item!!.barCode).executeAsList()[0]
+        holder.prodInfo.setOnClickListener {
+            val productpreviewlist = productQueries.getimg(item.barCode).executeAsList()[0]
             MainActivity.openPreview(productpreviewlist, item, binding)
             }
 
         holder.ivArrow.setOnClickListener { onItemClicked(item) }
-        val expiryDate = item?.item_data?.get(0)?.spoildate
+        try {
+            val expiryDate = item.item_data[0].spoildate
 
-        val diff: Int = ceil((expiryDate!!.time - Calendar.getInstance().timeInMillis).toFloat() / 86400000).toInt()
-        holder.tvDate.text = expiryDate.let { formatter.format(it) }
-        holder.tvProductQty.text = item.item_data.size.toString()
+            val diff: Int = ceil((expiryDate.time - Calendar.getInstance().timeInMillis).toFloat() / 86400000).toInt()
+            holder.tvDate.text = expiryDate.let { formatter.format(it) }
+            holder.tvProductQty.text = item.item_data.size.toString()
 
-        if (diff <= 3){
-            holder.tvDate.setTextColor(Color.parseColor("RED"))
-        }
-        else {
-            holder.tvDate.setTextColor(Color.parseColor("#80000000"))
-        }
+            if (diff <= 3){
+                holder.tvDate.setTextColor(Color.parseColor("RED"))
+            }
+            else {
+                holder.tvDate.setTextColor(Color.parseColor("#80000000"))
+            }}
+        catch (_: IndexOutOfBoundsException) {}
+
 
         if (item.isExpanded!!) {
             holder.rvHeadlines.visibility = View.VISIBLE

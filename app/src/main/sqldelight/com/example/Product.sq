@@ -38,3 +38,12 @@ insert_new:
 INSERT INTO product_data (barCode, barCode_original, brand, brand_original, product, product_original, status, product_url, product_url_original, image
 , image_original, last_updated)
 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+update_barCode:
+UPDATE product_data SET barCode = ? WHERE barCode = ?;
+
+update_brand:
+UPDATE product_data SET brand = ? WHERE brand = ? AND barCode = ?;
+
+update_product:
+UPDATE product_data SET product = ? WHERE product = ? AND barCode = ?;

@@ -214,19 +214,19 @@ class BarcodeScan : AppCompatActivity() {
 //            Log.d("string of nutriments count", nutriments.count().toString())
 //        }
 
-            productQueries.insert_new(
-                getbarcode,
-                getbarcode,
-                brand,
-                brand,
-                product,
-                product,
-                status,
-                productUrl,
-                productUrl,
-                image,
-                image,
-                sdf.format(cal.time)
+        productQueries.insert_new(
+            getbarcode,
+            getbarcode,
+            brand,
+            brand,
+            product,
+            product,
+            status,
+            productUrl,
+            productUrl,
+            image,
+            image,
+            sdf.format(cal.time)
             )
     }
 
