@@ -70,6 +70,9 @@ class MainActivity : ComponentActivity() {
 
     fun iniBc(){
         val allitems = itemQueries.selectjson().executeAsList()
+//        Log.d("All Items query", itemQueries.selectAll().executeAsList().toString())
+//        Log.d("All Items json query", allitems.toString())
+//        Log.d("All Items json", JsonConverter(this, allitems).getItemData().toString())
         mRecyclerView = binding.recyclerView
         val adapter = ProductAdapter(this, JsonConverter(this, allitems).getItemData(), binding)
         mRecyclerView!!.adapter = adapter

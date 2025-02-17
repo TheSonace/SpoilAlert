@@ -14,6 +14,7 @@
         android:layout_height="fill_parent"
         android:layout_above="@id/tvProductName"
         android:scaleType="fitXY"
+        android:layout_marginTop="32dp"
         />
 
     <TextView
@@ -26,7 +27,7 @@
         android:textStyle="bold"
         android:gravity="center"
         android:textColor="@color/colorTitle"
-        android:layout_marginBottom="32dp"
+        android:layout_marginBottom="48dp"
         />
 
     <TextView
@@ -36,7 +37,7 @@
         android:layout_alignParentBottom="true"
         android:layout_centerInParent="true"
         android:textColor="@color/colorTitle"
-        android:layout_marginBottom="32dp"
+        android:layout_marginBottom="48dp"
         />
 
     <TextView
@@ -49,7 +50,7 @@
         android:textStyle="bold"
         android:gravity="center"
         android:textColor="@color/colorTitle"
-        android:layout_marginBottom="32dp"
+        android:layout_marginBottom="48dp"
         />
 
     <TextView
