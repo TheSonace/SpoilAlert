@@ -200,34 +200,42 @@ class BarcodeScan : AppCompatActivity() {
 
     operator fun get(index: Int) {}
     suspend fun downloadProduct(getbarcode: String) {
+        try {
+            val json = ktorclient.fetchProductByCode(getbarcode)
 
-        val json = ktorclient.fetchProductByCode(getbarcode)
-        val brand = json.product?.brands.toString()
-        val product = json.product?.productName.toString()
-        val status = json.status.toString()
-        val productUrl = ktorclient.createProductUrl(getbarcode).toString()
+            val brand = json.product?.brands.toString()
+            val product = json.product?.productName.toString()
+            val status = json.status.toString()
+            val productUrl = ktorclient.createProductUrl(getbarcode).toString()
 //        val nutriments = json.product?.nutriments?.other
-        val image = json.product?.imageFrontUrl.toString()
+            val image = json.product?.imageFrontUrl.toString()
 
 //        if (nutriments != null) {
 //            Log.d("string of nutriments", nutriments.toString())
 //            Log.d("string of nutriments count", nutriments.count().toString())
 //        }
 
-        productQueries.insert_new(
-            getbarcode,
-            getbarcode,
-            brand,
-            brand,
-            product,
-            product,
-            status,
-            productUrl,
-            productUrl,
-            image,
-            image,
-            sdf.format(cal.time)
+            productQueries.insert_new(
+                getbarcode,
+                getbarcode,
+                brand,
+                brand,
+                product,
+                product,
+                status,
+                productUrl,
+                productUrl,
+                image,
+                image,
+                sdf.format(cal.time)
             )
+        } catch (_: NullPointerException) {
+            Toast.makeText(
+                applicationContext,
+                "Failed to scan barcode. Please send number to developer.",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
     }
 
     private fun openDatePicker() {

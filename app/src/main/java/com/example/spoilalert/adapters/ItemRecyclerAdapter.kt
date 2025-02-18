@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
@@ -49,7 +50,8 @@ class ItemAdapter(context: Context, data: MutableList<ItemModel>?) :
         val pos = items?.indexOfFirst {it.RecordKey == key}
         holder.tvspoildate.text = expiryDate.let { formatter.format(it) }
         holder.tvDaysLeft.text = diff.toString()
-        holder.deleteButton.setOnClickListener {delete(pos, key)}
+        holder.deleteButton.setOnClickListener {
+            delete(pos, key)}
 
         if (diff <= 3){
             holder.tvspoildate.setTextColor(Color.parseColor("RED"))

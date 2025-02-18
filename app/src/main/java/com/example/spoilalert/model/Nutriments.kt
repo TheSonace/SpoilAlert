@@ -54,40 +54,40 @@ data class Nutriments(
 
     @SerialName("cholesterol_unit")
     val cholesterolUnit: String? = null,
-    val energy: Int = 0,
+    val energy: Float = 0f,
 
     @SerialName("energy-kcal")
-    val energyKcal: Int = 0,
+    val energyKcal: Float = 0f,
 
     @SerialName("energy-kj")
-    val energyKj: Int = 0,
+    val energyKj: Float = 0f,
 
     @SerialName("energy_value")
-    val energyValue: Int = 0,
+    val energyValue: Float = 0f,
 
     @SerialName("energy-kcal_value")
-    val energyKcalValue: Int = 0,
+    val energyKcalValue: Float = 0f,
 
     @SerialName("energy-kj_value")
-    val energyKjValue: Int = 0,
+    val energyKjValue: Float = 0f,
 
     @SerialName("energy_100g")
-    val energy100G: Int = 0,
+    val energy100G: Float = 0f,
 
     @SerialName("energy-kcal_100g")
-    val energyKcal100G: Int = 0,
+    val energyKcal100G: Float = 0f,
 
     @SerialName("energy-kj_100g")
-    val energyKj100G: Int = 0,
+    val energyKj100G: Float = 0f,
 
     @SerialName("energy_serving")
-    val energyServing: Int = 0,
+    val energyServing: Float = 0f,
 
     @SerialName("energy-kcal_serving")
     val energyKcalServing: Double = 0.0,
 
     @SerialName("energy-kj_serving")
-    val energyKjServing: Int = 0,
+    val energyKjServing: Float = 0f,
 
     @SerialName("energy_unit")
     val energyUnit: String? = null,

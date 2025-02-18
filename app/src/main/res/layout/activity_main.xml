@@ -32,30 +32,65 @@
             android:layout_height="match_parent"
             android:layout_marginTop="32dp"
             android:layout_marginBottom="48dp"
+            android:orientation="horizontal"
             />
 
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/startscanbutton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:clickable="true"
-            android:src="@android:drawable/ic_menu_add"
-            android:gravity="center_horizontal"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentEnd="true"
-            android:layout_marginEnd="10dp"
-            android:layout_marginBottom="250dp"/>
 
         <ImageView
             android:id="@+id/introButton"
             android:layout_width="60dp"
-            android:layout_height="wrap_content"
-            android:layout_toStartOf="@id/startscanbutton"
-            android:layout_alignTop="@+id/startscanbutton"
-            android:layout_alignBottom="@+id/startscanbutton"
+            android:layout_height="match_parent"
             android:src="@drawable/double_arrow_right"
+            android:layout_toLeftOf="@id/simpleSlidingDrawer"
+            android:layout_alignTop="@id/simpleSlidingDrawer"
+            android:layout_alignBottom="@id/simpleSlidingDrawer"
             app:iconGravity="textEnd"
             />
+
+
+        <SlidingDrawer
+            android:id="@+id/simpleSlidingDrawer"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginBottom="250dp"
+            android:orientation="horizontal"
+            android:handle="@+id/handle"
+            android:content="@+id/menuContent"
+            >
+
+            <Button
+                android:id="@+id/handle"
+                android:layout_width="10dp"
+                android:layout_height="match_parent"
+                android:gravity="end"
+                android:textColor="#fff"
+                android:background="@drawable/rounded_edge_slide_menu"
+                />
+
+            <LinearLayout
+                android:id="@+id/menuContent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:background="@drawable/layout_border"
+                >
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/startscanbutton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:src="@android:drawable/ic_menu_add"
+                    />
+
+            </LinearLayout>
+
+        </SlidingDrawer>
+
+
 
     </RelativeLayout>
 

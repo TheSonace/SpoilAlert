@@ -15,4 +15,6 @@
     <color name="colorTitle">#68b0ab</color>
     <color name="colorBgProduct">#fbf6ef</color>
     <color name="colorBgItem">#ead7c3</color>
+    <color name="textColor">#80000000</color>
+
 </resources>

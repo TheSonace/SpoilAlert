@@ -9,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -62,7 +63,7 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?,
         }
         else {
             binding.introText.visibility = View.GONE
-            binding.introButton.visibility = View.GONE
+            binding.introButton.visibility = View.INVISIBLE
         }
 
         if (item.item_data.isEmpty()) {

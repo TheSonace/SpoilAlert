@@ -9,5 +9,8 @@
     <string name="tvDateText">Next Expiry Date: </string>
     <string name="tvExpiryDateText">Expiry Date: </string>
     <string name="tvDaysLeftText">Days Left: </string>
-    <string name="intro_text">It seems you haven\'t scanned any items yet..\n\nLet\'s start by adding your first product,\nstarting your SpoilAlert journey!</string>
+    <string name="intro_text">It seems you haven\'t scanned any items yet..\n\n
+        Let\'s start by adding your first product,\n
+        starting your SpoilAlert journey!\n\n\n\n\n\n\n\n\n
+        Slide the menu into view by \nswiping the Tab to the left.</string>
 </resources>
