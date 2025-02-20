@@ -37,59 +37,125 @@
 
 
         <ImageView
-            android:id="@+id/introButton"
+            android:id="@+id/introButton1"
             android:layout_width="60dp"
             android:layout_height="match_parent"
             android:src="@drawable/double_arrow_right"
-            android:layout_toLeftOf="@id/simpleSlidingDrawer"
-            android:layout_alignTop="@id/simpleSlidingDrawer"
-            android:layout_alignBottom="@id/simpleSlidingDrawer"
+            android:layout_toStartOf="@id/mainMenuSlidingDrawer"
+            android:layout_alignTop="@id/mainMenuSlidingDrawer"
+            android:layout_alignBottom="@id/mainMenuSlidingDrawer"
             app:iconGravity="textEnd"
             />
 
 
         <SlidingDrawer
-            android:id="@+id/simpleSlidingDrawer"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
+            android:id="@+id/mainMenuSlidingDrawer"
+            android:layout_width="90dp"
+            android:layout_height="220dp"
             android:layout_alignParentBottom="true"
             android:layout_alignParentEnd="true"
             android:layout_marginBottom="250dp"
             android:orientation="horizontal"
-            android:handle="@+id/handle"
-            android:content="@+id/menuContent"
+            android:handle="@+id/mainMenuHandle"
+            android:content="@+id/mainMenuContent"
             >
 
             <Button
-                android:id="@+id/handle"
+                android:id="@+id/mainMenuHandle"
                 android:layout_width="10dp"
                 android:layout_height="match_parent"
                 android:gravity="end"
-                android:textColor="#fff"
                 android:background="@drawable/rounded_edge_slide_menu"
                 />
 
-            <LinearLayout
-                android:id="@+id/menuContent"
+            <RelativeLayout
+                android:id="@+id/mainMenuContent"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:orientation="vertical"
                 android:background="@drawable/layout_border"
+
                 >
 
-                <com.google.android.material.floatingactionbutton.FloatingActionButton
-                    android:id="@+id/startscanbutton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                <ImageView
+                    android:id="@+id/mainMenuSettingsButton"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
                     android:clickable="true"
-                    android:src="@android:drawable/ic_menu_add"
+                    android:src="@drawable/ic_settings_menu"
+                    android:background="@drawable/circle_background"
                     />
 
-            </LinearLayout>
+                <ImageView
+                    android:id="@+id/mainMenuInfoButton"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_marginVertical="10dp"
+                    android:layout_below="@+id/mainMenuSettingsButton"
+                    android:clickable="true"
+                    android:src="@drawable/ic_information"
+                    android:background="@drawable/circle_background"
+                    />
+
+                <ImageView
+                    android:id="@+id/mainMenuStartScanButton"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_below="@+id/mainMenuInfoButton"
+                    android:clickable="true"
+                    android:src="@drawable/add_circle"
+                    android:background="@drawable/circle_background"
+                    />
+
+            </RelativeLayout>
 
         </SlidingDrawer>
 
+
+        <SlidingDrawer
+            android:id="@+id/mainAddSlidingDrawer"
+            android:layout_width="90dp"
+            android:layout_height="80dp"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentStart="true"
+            android:layout_marginBottom="250dp"
+            android:orientation="horizontal"
+            android:rotation="180"
+            android:handle="@+id/mainAddsHandle"
+            android:content="@+id/mainAddsContent"
+            >
+
+            <Button
+                android:id="@+id/mainAddsHandle"
+                android:layout_width="10dp"
+                android:layout_height="match_parent"
+                android:gravity="start"
+                android:background="@drawable/rounded_edge_slide_menu"
+                />
+
+            <RelativeLayout
+                android:id="@+id/mainAddsContent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:background="@drawable/layout_border"
+                tools:ignore="RtlSymmetry">
+
+                <ImageView
+                    android:id="@+id/mainWatchAdd"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_marginVertical="10dp"
+                    android:clickable="true"
+                    android:rotation="180"
+                    android:src="@drawable/ic_watch_add"
+                    />
+
+            </RelativeLayout>
+
+        </SlidingDrawer>
 
 
     </RelativeLayout>

@@ -124,7 +124,6 @@ class BarcodeScan : AppCompatActivity() {
 
             override fun surfaceDestroyed(holder: SurfaceHolder) {
                 cameraSource.stop()
-                Toast.makeText(applicationContext, "Returning to Home Screen", Toast.LENGTH_SHORT).show()
             }
 
         })

@@ -11,10 +11,23 @@
     <color name="colorPrimaryDark">#00574B</color>
     <color name="colorAccent">#D81B60</color>
     <color name="colorWhite">#FFFFFF</color>
+    <color name="textColor">#80000000</color>
+
     <color name="colorBgMain">#dce0d9</color>
     <color name="colorTitle">#68b0ab</color>
     <color name="colorBgProduct">#fbf6ef</color>
     <color name="colorBgItem">#ead7c3</color>
-    <color name="textColor">#80000000</color>
+    <color name="menuWidgets">#006d77</color>
+
+<!--    <color name="colorBgMain">#e9edc9</color>-->
+<!--    <color name="colorTitle">#ccd5ae</color>-->
+<!--    <color name="colorBgProduct">#fefae0</color>-->
+<!--    <color name="colorBgItem">#faedcd</color>-->
+<!--    <color name="menuWidgets">#d4a373</color>-->
+
+<!--    <color name="colorBgMain">#dce0d9</color>-->
+<!--    <color name="colorTitle">#68b0ab</color>-->
+<!--    <color name="colorBgProduct">#fbf6ef</color>-->
+<!--    <color name="colorBgItem">#ead7c3</color>-->
 
 </resources>

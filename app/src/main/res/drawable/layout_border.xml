@@ -2,5 +2,5 @@
     android:shape="rectangle">
     <stroke
         android:width="2dp"
-        android:color="@color/textColor" />
+        android:color="@color/menuWidgets" />
 </shape>

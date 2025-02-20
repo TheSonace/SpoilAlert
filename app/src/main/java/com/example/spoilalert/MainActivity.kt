@@ -55,7 +55,7 @@ class MainActivity : ComponentActivity() {
                 Toast.makeText(this, "Permission Not Granted", Toast.LENGTH_SHORT).show()
             }
         }
-        binding.startscanbutton.setOnClickListener() {
+        binding.mainMenuStartScanButton.setOnClickListener() {
             requestCamera?.launch(android.Manifest.permission.CAMERA)
         }
 
@@ -65,6 +65,18 @@ class MainActivity : ComponentActivity() {
 
         binding.flipperMedia.tvProductBrand.setOnClickListener{
             updateProductInfoDialog("ProductBrand", binding.flipperMedia.tvProductBrand.text.toString(), binding.flipperMedia.tvbarCode.text.toString())
+        }
+
+        binding.mainWatchAdd.setOnClickListener() {
+            Toast.makeText(applicationContext, "Placeholder for watch add button", Toast.LENGTH_SHORT).show()
+        }
+
+        binding.mainMenuSettingsButton.setOnClickListener() {
+            Toast.makeText(applicationContext, "Placeholder for settings button", Toast.LENGTH_SHORT).show()
+        }
+
+        binding.mainMenuInfoButton.setOnClickListener() {
+            Toast.makeText(applicationContext, "Placeholder for info button", Toast.LENGTH_SHORT).show()
         }
     }
 

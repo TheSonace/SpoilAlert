@@ -59,11 +59,11 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?,
 
         if (item!!.item_data.isEmpty() && items!!.size < 2) {
             binding.introText.visibility = View.VISIBLE
-            binding.introButton.visibility = View.VISIBLE
+            binding.introButton1.visibility = View.VISIBLE
         }
         else {
             binding.introText.visibility = View.GONE
-            binding.introButton.visibility = View.INVISIBLE
+            binding.introButton1.visibility = View.INVISIBLE
         }
 
         if (item.item_data.isEmpty()) {
