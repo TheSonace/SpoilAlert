@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
@@ -60,11 +61,15 @@ class MainActivity : ComponentActivity() {
         }
 
         binding.flipperMedia.tvProductName.setOnClickListener{
-            updateProductInfoDialog("ProductName", binding.flipperMedia.tvProductName.text.toString(), binding.flipperMedia.tvbarCode.text.toString())
+            updateProductInfoDialog("ProductName",
+                binding.flipperMedia.tvProductName.text.toString(),
+                binding.flipperMedia.tvbarCode.text.toString())
         }
 
         binding.flipperMedia.tvProductBrand.setOnClickListener{
-            updateProductInfoDialog("ProductBrand", binding.flipperMedia.tvProductBrand.text.toString(), binding.flipperMedia.tvbarCode.text.toString())
+            updateProductInfoDialog("ProductBrand",
+                binding.flipperMedia.tvProductBrand.text.toString(),
+                binding.flipperMedia.tvbarCode.text.toString())
         }
 
         binding.mainWatchAdd.setOnClickListener() {
@@ -91,6 +96,7 @@ class MainActivity : ComponentActivity() {
         mRecyclerView!!.layoutManager = LinearLayoutManager(this)
     }
 
+    @SuppressLint("SetTextI18n")
     private fun updateProductInfoDialog(item: String, value: String, barCode: String) {
         val columnName = item.replace(", ", "")
         var newItem : String = ""
@@ -108,23 +114,25 @@ class MainActivity : ComponentActivity() {
         // set the custom layout
         val customLayout: View = layoutInflater.inflate(R.layout.dialog_update_product_info, null)
         builder.setView(customLayout)
+        val editText: TextView = customLayout.findViewById<EditText>(R.id.editText)
+        editText.text = newValue
         // add a button
         builder.setPositiveButton(
-            "Update",
-            DialogInterface.OnClickListener { dialog, which -> // do something with response
-                val editText = customLayout.findViewById<EditText>(R.id.editText).text.toString()
-                Log.e("Product Info new Update", editText)
-                if (columnName == "ProductName") {
-                    productQueries.update_product(editText, newValue, barCode)
-                    binding.flipperMedia.tvProductName.text = editText + ", "
-                    iniBc()
-                }
-                if (columnName == "ProductBrand") {
-                    productQueries.update_brand(editText, newValue, barCode)
-                    binding.flipperMedia.tvProductBrand.text = editText
-                    iniBc()
-                }
-            })
+            "Update"
+        ) { _, _ -> // do something with response
+            val updatedValue = editText.text.toString()
+            Log.e("Product Info new Update", updatedValue)
+            if (columnName == "ProductName") {
+                productQueries.update_product(updatedValue, newValue, barCode)
+                binding.flipperMedia.tvProductName.text = "$updatedValue, "
+                iniBc()
+            }
+            if (columnName == "ProductBrand") {
+                productQueries.update_brand(updatedValue, newValue, barCode)
+                binding.flipperMedia.tvProductBrand.text = updatedValue
+                iniBc()
+            }
+        }
         // create and show the alert dialog
         val dialog: AlertDialog = builder.create()
         dialog.show()

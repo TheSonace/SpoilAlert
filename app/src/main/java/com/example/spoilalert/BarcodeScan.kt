@@ -1,12 +1,16 @@
 package com.example.spoilalert
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
 import android.view.SurfaceHolder
+import android.view.View
+import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import android.widget.ViewFlipper
 import androidx.appcompat.app.AppCompatActivity
@@ -67,6 +71,7 @@ class BarcodeScan : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d("TAG", productQueries.selectAll().executeAsList().toString())
         super.onCreate(savedInstanceState)
+        supportActionBar?.hide()
         binding = ActivityBarcodeScanBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -92,6 +97,18 @@ class BarcodeScan : AppCompatActivity() {
         binding.button.setOnClickListener {
             Toast.makeText(applicationContext, "BarCode can't be detected in DataBase. " +
                     "Will need to manually add item.", Toast.LENGTH_SHORT).show()
+        }
+
+        binding.flipperMedia.prodInfo.tvProductName.setOnClickListener{
+            updateProductInfoDialog("ProductName",
+                binding.flipperMedia.prodInfo.tvProductName.text.toString(),
+                binding.flipperMedia.prodInfo.tvbarCode.text.toString())
+        }
+
+        binding.flipperMedia.prodInfo.tvProductBrand.setOnClickListener{
+            updateProductInfoDialog("ProductBrand",
+                binding.flipperMedia.prodInfo.tvProductBrand.text.toString(),
+                binding.flipperMedia.prodInfo.tvbarCode.text.toString())
         }
     }
 
@@ -132,6 +149,7 @@ class BarcodeScan : AppCompatActivity() {
                 Toast.makeText(applicationContext, "Scanning has been stopped, returning to home screen.", Toast.LENGTH_SHORT).show()
             }
 
+            @SuppressLint("SetTextI18n")
             override fun receiveDetections(detections: Detector.Detections<Barcode>) {
                 if (activeScanBoolean == 0) {
                     val barcodes = detections.detectedItems
@@ -145,13 +163,15 @@ class BarcodeScan : AppCompatActivity() {
                                 lifecycleScope.launch {
                                     downloadProduct(getbarcode)}}
                             try {
-                                val productpreviewlist =
-                                    productQueries.getimg(latestbarcodescan).executeAsList()[0]
-                                if (productpreviewlist != "null") {
-                                    val img = loadImageFromWebOperations(productpreviewlist)
-                                    latestbarcodescan = getbarcode
-                                    binding.flipperMedia.imageView.setImageBitmap(img)
-                                    runOnUiThread(Runnable { switchToPreview(viewFlipper) })}
+                                val localProduct =
+                                    productQueries.getlocal(latestbarcodescan).executeAsList()[0]
+                                binding.flipperMedia.prodInfo.imageView.setImageBitmap(
+                                    loadImageFromWebOperations(localProduct.image))
+                                binding.flipperMedia.prodInfo.tvProductName.text = localProduct.product + ", "
+                                binding.flipperMedia.prodInfo.tvProductBrand.text = localProduct.brand
+                                binding.flipperMedia.prodInfo.tvbarCode.text = latestbarcodescan
+//                                    binding.flipperMedia.imageView.setImageBitmap(img)
+                                runOnUiThread(Runnable { switchToPreview(viewFlipper) })
                             } catch(_: NullPointerException) {}
                         }
                         else {
@@ -162,6 +182,46 @@ class BarcodeScan : AppCompatActivity() {
                 }
             }
         })
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun updateProductInfoDialog(item: String, value: String, barCode: String) {
+        val columnName = item.replace(", ", "")
+        var newItem : String = ""
+        if (columnName == "ProductName") { newItem = "Product Name"}
+        if (columnName == "ProductBrand") { newItem = "Product Brand"}
+
+        val newValue = value.replace(", ", "")
+        Log.e("Product Info Update", barCode)
+        Log.e("Product Info Update", newItem)
+        Log.e("Product Info Update", newValue)
+
+        // create an alert builder
+        val builder: AlertDialog.Builder = AlertDialog.Builder(this)
+        builder.setTitle(newItem)
+        // set the custom layout
+        val customLayout: View = layoutInflater.inflate(R.layout.dialog_update_product_info, null)
+        builder.setView(customLayout)
+        val editText: TextView = customLayout.findViewById<EditText>(R.id.editText)
+        editText.text = newValue
+        // add a button
+        builder.setPositiveButton(
+            "Update"
+        ) { _, _ -> // do something with response
+            val updatedValue = editText.text.toString()
+            Log.e("Product Info new Update", updatedValue)
+            if (columnName == "ProductName") {
+                productQueries.update_product(updatedValue, newValue, barCode)
+                binding.flipperMedia.prodInfo.tvProductName.text = "$updatedValue, "
+            }
+            if (columnName == "ProductBrand") {
+                productQueries.update_brand(updatedValue, newValue, barCode)
+                binding.flipperMedia.prodInfo.tvProductBrand.text = updatedValue
+            }
+        }
+        // create and show the alert dialog
+        val dialog: AlertDialog = builder.create()
+        dialog.show()
     }
 
     override fun onPause() {
