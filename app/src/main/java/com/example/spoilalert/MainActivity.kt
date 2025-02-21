@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.DialogInterface
 import android.content.Intent
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -196,9 +197,12 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         @SuppressLint("SetTextI18n")
-        fun openPreview(productpreviewlist: String, item: ProductModel, binding: ActivityMainBinding) {
+        fun openPreview(productpreviewlist: String, item: ProductModel, binding: ActivityMainBinding, bitmapimg: Bitmap?) {
             val viewFlipper = binding.myViewFlipper
-            val img = loadImageFromWebOperations(productpreviewlist)
+            var img = bitmapimg
+            if (img == null) {
+                img = loadImageFromWebOperations(productpreviewlist)
+            }
             binding.flipperMedia.imageView.setImageBitmap(img)
             binding.flipperMedia.tvProductName.text = item.product + ", "
             binding.flipperMedia.tvProductBrand.text = item.brand

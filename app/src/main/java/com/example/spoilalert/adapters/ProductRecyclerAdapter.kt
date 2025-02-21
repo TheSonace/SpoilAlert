@@ -2,6 +2,8 @@ package com.example.spoilalert.adapters
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.os.StrictMode
 import android.util.Log
@@ -9,7 +11,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -19,6 +20,9 @@ import com.example.spoilalert.MainActivity
 import com.example.spoilalert.R
 import com.example.spoilalert.databinding.ActivityMainBinding
 import com.example.spoilalert.models.ProductModel
+import com.example.spoilalert.utils.DownloadAndSaveImageTask
+import java.io.File
+import java.lang.NullPointerException
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import kotlin.math.ceil
@@ -89,7 +93,14 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?,
 
         holder.prodInfo.setOnClickListener {
             val productpreviewlist = productQueries.getimg(item.barCode).executeAsList()[0]
-            MainActivity.openPreview(productpreviewlist, item, binding)
+            var filename = item.barCode
+            DownloadAndSaveImageTask(mContext, filename).execute(productpreviewlist)
+            var myBitmap: Bitmap? = null
+            var file = File(File(mContext.filesDir, "Products"), "$filename.jpg")
+            if (file.exists()) {
+                myBitmap = BitmapFactory.decodeFile(file.toString())
+            }
+            MainActivity.openPreview(productpreviewlist, item, binding, myBitmap)
             }
 
         holder.ivArrow.setOnClickListener { onItemClicked(item) }
