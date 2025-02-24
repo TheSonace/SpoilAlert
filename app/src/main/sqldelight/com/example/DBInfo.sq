@@ -19,3 +19,6 @@ LIMIT 1;
 delete_all:
 DELETE
 FROM DBInfo;
+
+update:
+UPDATE DBInfo SET user_version = ?;

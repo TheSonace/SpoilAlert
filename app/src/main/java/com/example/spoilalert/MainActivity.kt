@@ -7,6 +7,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
+import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnTouchListener
@@ -27,7 +28,7 @@ import com.example.spoilalert.models.ProductModel
 import com.example.spoilalert.utils.JsonConverter
 
 
-class MainActivity : ComponentActivity(), OnTouchListener {
+class MainActivity : ComponentActivity(), OnTouchListener, GestureDetector.OnGestureListener {
     val ktorclient = OpenFoodFactsKtorClient()
     private var requestCamera: ActivityResultLauncher<String>? = null
     private lateinit var binding: ActivityMainBinding
@@ -38,6 +39,8 @@ class MainActivity : ComponentActivity(), OnTouchListener {
     var mRecyclerView: RecyclerView? = null
     private val productQueries = database.productQueries
 
+    private lateinit var gestureDetector: GestureDetector
+
     override fun onCreate(savedInstanceState: Bundle?) {
 //        itemQueries.deleteAll()
 //        productQueries.deleteAll()
@@ -47,6 +50,7 @@ class MainActivity : ComponentActivity(), OnTouchListener {
         binding = ActivityMainBinding.inflate(layoutInflater)
         enableEdgeToEdge()
         setContentView(binding.root)
+        gestureDetector = GestureDetector(this, this)
 
         requestCamera = registerForActivityResult(
             ActivityResultContracts
@@ -89,39 +93,8 @@ class MainActivity : ComponentActivity(), OnTouchListener {
     }
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
-
-        return when (event.action) {
-            MotionEvent.ACTION_DOWN -> {
-                // when we touch or tap on the screen
-                Log.d("TAG", "Action was DOWN")
-                true
-            }
-            MotionEvent.ACTION_MOVE -> {
-                // while pressing on the screen,
-                // we move our finger
-                Log.d("TAG", "Action was MOVE")
-
-                true
-            }
-            MotionEvent.ACTION_UP -> {
-                // Lifting up the finger after
-                // pressing on the screen
-                Log.d("TAG", "Action was UP")
-
-                true
-            }
-            MotionEvent.ACTION_CANCEL -> {
-                Log.d("TAG", "Action was CANCEL")
-
-                true
-            }
-            MotionEvent.ACTION_OUTSIDE -> {
-                Log.d("TAG", "Movement occurred outside of screen element")
-
-                true
-            }
-            else -> super.onTouchEvent(event)
-        }
+        event.let { gestureDetector.onTouchEvent(it) }
+        return false
     }
 
     fun iniBc(){
@@ -202,20 +175,25 @@ class MainActivity : ComponentActivity(), OnTouchListener {
         if (versionNr == "3") {
             try {
                 Database.Schema.migrate(driver, oldVersion = 3, newVersion = 4)
+                versionNr = "4"
                 Log.d("Software version", "Software updated to Version: $versionNr")
             } catch (_: RuntimeException) {
                 Log.e("Software version", "Software failed to update to Version: $versionNr")
             }
-            versionNr = "4"
         }
         if (versionNr == "4") {
             try {
                 Database.Schema.migrate(driver, oldVersion = 4, newVersion = 5)
+                versionNr = "5"
                 Log.d("Software version", "Software updated to Version: $versionNr")
-            } catch (_: RuntimeException) {
-                Log.e("Software version", "Software failed to update to Version: $versionNr")
+            } catch (e: RuntimeException) {
+                if (e.toString() == "android.database.sqlite.SQLiteException: duplicate column name: barCode_original (code 1 SQLITE_ERROR): , while compiling: ALTER TABLE product_data ADD COLUMN barCode_original TEXT NOT NULL DEFAULT 0") {
+                    dbinfoQueries.update(5)
+                    Log.d("Software version", "Software updated to Version: 5")}
+                else {
+                    Log.e("Software version", "Software failed to update to Version: $versionNr")
+                }
             }
-            versionNr = "5"
             // DO NOT FORGET TO SET INITIAL TABLE GENERATION DB VERSION in DBInfo IF UPDATING. CURRENTLY SET TO VERSION 5
         }
         Log.d("GetAllProducts", productQueries.selectAll().executeAsList().toString())
@@ -258,7 +236,33 @@ class MainActivity : ComponentActivity(), OnTouchListener {
         }
     }
 
-    override fun onTouch(p0: View?, p1: MotionEvent?): Boolean {
-        TODO("Not yet implemented")
+
+
+    override fun onDown(p0: MotionEvent): Boolean {
+        Log.d("test", "tesststst")
+        return false
     }
+
+    override fun onShowPress(p0: MotionEvent) {}
+
+    override fun onSingleTapUp(p0: MotionEvent): Boolean = false
+
+    override fun onScroll(p0: MotionEvent?, p1: MotionEvent, p2: Float, p3: Float): Boolean = false
+
+    override fun onLongPress(p0: MotionEvent) {}
+
+    override fun onFling(p0: MotionEvent?, p1: MotionEvent, p2: Float, p3: Float): Boolean {
+        // Handle the fling gesture
+        if (p2 > 1000) {
+            // Right fling
+            Log.d("yoooo", "Right")
+        } else if (p3 < -1000) {
+            // Left fling
+            Log.d("yoooo", "Left")
+        }
+        return true
+    }
+
+    override fun onTouch(p0: View?, p1: MotionEvent?): Boolean = false
+
 }
