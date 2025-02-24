@@ -63,7 +63,7 @@
 
             <Button
                 android:id="@+id/mainMenuHandle"
-                android:layout_width="10dp"
+                android:layout_width="12dp"
                 android:layout_height="match_parent"
                 android:gravity="end"
                 android:background="@drawable/rounded_edge_slide_menu"
@@ -129,7 +129,7 @@
 
             <Button
                 android:id="@+id/mainAddsHandle"
-                android:layout_width="10dp"
+                android:layout_width="12dp"
                 android:layout_height="match_parent"
                 android:gravity="start"
                 android:background="@drawable/rounded_edge_slide_menu"

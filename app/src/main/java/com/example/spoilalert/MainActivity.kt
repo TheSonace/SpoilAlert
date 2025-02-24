@@ -29,7 +29,7 @@ import com.example.spoilalert.models.ProductModel
 import com.example.spoilalert.utils.JsonConverter
 
 
-class MainActivity : ComponentActivity(), OnTouchListener, GestureDetector.OnGestureListener {
+class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.OnGestureListener {
     val ktorclient = OpenFoodFactsKtorClient()
     private var requestCamera: ActivityResultLauncher<String>? = null
     private lateinit var binding: ActivityMainBinding
@@ -40,7 +40,7 @@ class MainActivity : ComponentActivity(), OnTouchListener, GestureDetector.OnGes
     var mRecyclerView: RecyclerView? = null
     private val productQueries = database.productQueries
 
-    private lateinit var gestureDetector: GestureDetector
+//    private lateinit var gestureDetector: GestureDetector
 
     override fun onCreate(savedInstanceState: Bundle?) {
 //        itemQueries.deleteAll()
@@ -51,7 +51,7 @@ class MainActivity : ComponentActivity(), OnTouchListener, GestureDetector.OnGes
         binding = ActivityMainBinding.inflate(layoutInflater)
         enableEdgeToEdge()
         setContentView(binding.root)
-        gestureDetector = GestureDetector(this, this)
+//        gestureDetector = GestureDetector(this, this)
 
         requestCamera = registerForActivityResult(
             ActivityResultContracts
@@ -93,10 +93,10 @@ class MainActivity : ComponentActivity(), OnTouchListener, GestureDetector.OnGes
         }
     }
 
-    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
-        event.let { gestureDetector.onTouchEvent(it) }
-        return super.dispatchTouchEvent(event)
-    }
+//    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+//        event.let { gestureDetector.onTouchEvent(it) }
+//        return super.dispatchTouchEvent(event)
+//    }
 
     fun iniBc(){
         val allitems = itemQueries.selectjson().executeAsList()
@@ -196,6 +196,7 @@ class MainActivity : ComponentActivity(), OnTouchListener, GestureDetector.OnGes
                 }
             }
             // DO NOT FORGET TO SET INITIAL TABLE GENERATION DB VERSION in DBInfo IF UPDATING. CURRENTLY SET TO VERSION 5
+            // DO NOT FORGET TO UPDATE SOFTWARE VERSION IN MIGRATION FILE
         }
         Log.d("GetAllProducts", productQueries.selectAll().executeAsList().toString())
         Log.d("GetAllDBInfo", dbinfoQueries.selectAll().executeAsList().toString())
@@ -239,27 +240,27 @@ class MainActivity : ComponentActivity(), OnTouchListener, GestureDetector.OnGes
 
 
 
-    override fun onDown(p0: MotionEvent): Boolean = false
-    override fun onShowPress(p0: MotionEvent) {}
-    override fun onSingleTapUp(p0: MotionEvent): Boolean = false
-    override fun onScroll(p0: MotionEvent?, p1: MotionEvent, p2: Float, p3: Float): Boolean = false
-    override fun onLongPress(p0: MotionEvent) {}
-    override fun onFling(p0: MotionEvent?, p1: MotionEvent, p2: Float, p3: Float): Boolean {
-        val addsMenu = binding.myViewFlipper.findViewById<SlidingDrawer>(R.id.mainAddSlidingDrawer)
-        val mainMenu = binding.myViewFlipper.findViewById<SlidingDrawer>(R.id.mainMenuSlidingDrawer)
-        // Handle the fling gesture
-        if (p2 > 500) {
-            // Right fling
-            if (mainMenu.isOpened) {mainMenu.animateClose()}
-            if (!mainMenu.isOpened) {addsMenu.animateOpen()}
-        } else if (p3 < -500) {
-            // Left fling
-            if (addsMenu.isOpened) {addsMenu.animateClose()}
-            if (!addsMenu.isOpened) {mainMenu.animateOpen()}
-        }
-        return true
-    }
-    @SuppressLint("ClickableViewAccessibility")
-    override fun onTouch(p0: View?, p1: MotionEvent?): Boolean = false
+//    override fun onDown(p0: MotionEvent): Boolean = false
+//    override fun onShowPress(p0: MotionEvent) {}
+//    override fun onSingleTapUp(p0: MotionEvent): Boolean = false
+//    override fun onScroll(p0: MotionEvent?, p1: MotionEvent, p2: Float, p3: Float): Boolean = false
+//    override fun onLongPress(p0: MotionEvent) {}
+//    override fun onFling(p0: MotionEvent?, p1: MotionEvent, p2: Float, p3: Float): Boolean {
+//        val addsMenu = binding.myViewFlipper.findViewById<SlidingDrawer>(R.id.mainAddSlidingDrawer)
+//        val mainMenu = binding.myViewFlipper.findViewById<SlidingDrawer>(R.id.mainMenuSlidingDrawer)
+//        // Handle the fling gesture
+//        if (p2 > 500) {
+//            // Right fling
+//            if (mainMenu.isOpened) {mainMenu.animateClose()}
+//            if (!mainMenu.isOpened) {addsMenu.animateOpen()}
+//        } else if (p3 < -500) {
+//            // Left fling
+//            if (addsMenu.isOpened) {addsMenu.animateClose()}
+//            if (!addsMenu.isOpened) {mainMenu.animateOpen()}
+//        }
+//        return true
+//    }
+//    @SuppressLint("ClickableViewAccessibility")
+//    override fun onTouch(p0: View?, p1: MotionEvent?): Boolean = false
 
 }
