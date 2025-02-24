@@ -7,7 +7,9 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
+import android.view.MotionEvent
 import android.view.View
+import android.view.View.OnTouchListener
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
@@ -25,7 +27,7 @@ import com.example.spoilalert.models.ProductModel
 import com.example.spoilalert.utils.JsonConverter
 
 
-class MainActivity : ComponentActivity() {
+class MainActivity : ComponentActivity(), OnTouchListener {
     val ktorclient = OpenFoodFactsKtorClient()
     private var requestCamera: ActivityResultLauncher<String>? = null
     private lateinit var binding: ActivityMainBinding
@@ -83,6 +85,42 @@ class MainActivity : ComponentActivity() {
 
         binding.mainMenuInfoButton.setOnClickListener() {
             Toast.makeText(applicationContext, "Placeholder for info button", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+
+        return when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+                // when we touch or tap on the screen
+                Log.d("TAG", "Action was DOWN")
+                true
+            }
+            MotionEvent.ACTION_MOVE -> {
+                // while pressing on the screen,
+                // we move our finger
+                Log.d("TAG", "Action was MOVE")
+
+                true
+            }
+            MotionEvent.ACTION_UP -> {
+                // Lifting up the finger after
+                // pressing on the screen
+                Log.d("TAG", "Action was UP")
+
+                true
+            }
+            MotionEvent.ACTION_CANCEL -> {
+                Log.d("TAG", "Action was CANCEL")
+
+                true
+            }
+            MotionEvent.ACTION_OUTSIDE -> {
+                Log.d("TAG", "Movement occurred outside of screen element")
+
+                true
+            }
+            else -> super.onTouchEvent(event)
         }
     }
 
@@ -218,5 +256,9 @@ class MainActivity : ComponentActivity() {
             binding.flipperMedia.tvbarCode.text = item.barCode
             viewFlipper.displayedChild = viewFlipper.indexOfChild(binding.flipperMedia.productView)
         }
+    }
+
+    override fun onTouch(p0: View?, p1: MotionEvent?): Boolean {
+        TODO("Not yet implemented")
     }
 }
