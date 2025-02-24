@@ -12,6 +12,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnTouchListener
 import android.widget.EditText
+import android.widget.SlidingDrawer
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -94,7 +95,7 @@ class MainActivity : ComponentActivity(), OnTouchListener, GestureDetector.OnGes
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
         event.let { gestureDetector.onTouchEvent(it) }
-        return false
+        return super.dispatchTouchEvent(event)
     }
 
     fun iniBc(){
@@ -238,31 +239,27 @@ class MainActivity : ComponentActivity(), OnTouchListener, GestureDetector.OnGes
 
 
 
-    override fun onDown(p0: MotionEvent): Boolean {
-        Log.d("test", "tesststst")
-        return false
-    }
-
+    override fun onDown(p0: MotionEvent): Boolean = false
     override fun onShowPress(p0: MotionEvent) {}
-
     override fun onSingleTapUp(p0: MotionEvent): Boolean = false
-
     override fun onScroll(p0: MotionEvent?, p1: MotionEvent, p2: Float, p3: Float): Boolean = false
-
     override fun onLongPress(p0: MotionEvent) {}
-
     override fun onFling(p0: MotionEvent?, p1: MotionEvent, p2: Float, p3: Float): Boolean {
+        val addsMenu = binding.myViewFlipper.findViewById<SlidingDrawer>(R.id.mainAddSlidingDrawer)
+        val mainMenu = binding.myViewFlipper.findViewById<SlidingDrawer>(R.id.mainMenuSlidingDrawer)
         // Handle the fling gesture
-        if (p2 > 1000) {
+        if (p2 > 500) {
             // Right fling
-            Log.d("yoooo", "Right")
-        } else if (p3 < -1000) {
+            if (mainMenu.isOpened) {mainMenu.animateClose()}
+            if (!mainMenu.isOpened) {addsMenu.animateOpen()}
+        } else if (p3 < -500) {
             // Left fling
-            Log.d("yoooo", "Left")
+            if (addsMenu.isOpened) {addsMenu.animateClose()}
+            if (!addsMenu.isOpened) {mainMenu.animateOpen()}
         }
         return true
     }
-
+    @SuppressLint("ClickableViewAccessibility")
     override fun onTouch(p0: View?, p1: MotionEvent?): Boolean = false
 
 }
