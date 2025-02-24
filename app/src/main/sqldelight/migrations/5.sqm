@@ -1,0 +1,3 @@
+ALTER TABLE item_data ADD COLUMN location TEXT DEFAULT NULL;
+
+UPDATE item_data SET location = NULL;

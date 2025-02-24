@@ -90,7 +90,7 @@ class MainActivity : ComponentActivity() {
         val allitems = itemQueries.selectjson().executeAsList()
 //        Log.d("All Items query", itemQueries.selectAll().executeAsList().toString())
 //        Log.d("All Items json query", allitems.toString())
-//        Log.d("All Items json", JsonConverter(this, allitems).getItemData().toString())
+        Log.d("All Items json", JsonConverter(this, allitems).getItemData().toString())
         mRecyclerView = binding.recyclerView
         val adapter = ProductAdapter(this, JsonConverter(this, allitems).getItemData(), binding)
         mRecyclerView!!.adapter = adapter
@@ -169,7 +169,16 @@ class MainActivity : ComponentActivity() {
                 Log.e("Software version", "Software failed to update to Version: $versionNr")
             }
             versionNr = "4"
-            // DO NOT FORGET TO SET INITIAL TABLE GENERATION DB VERSION IF UPDATING. CURRENTLY SET TO VERSION 4
+        }
+        if (versionNr == "4") {
+            try {
+                Database.Schema.migrate(driver, oldVersion = 4, newVersion = 5)
+                Log.d("Software version", "Software updated to Version: $versionNr")
+            } catch (_: RuntimeException) {
+                Log.e("Software version", "Software failed to update to Version: $versionNr")
+            }
+            versionNr = "5"
+            // DO NOT FORGET TO SET INITIAL TABLE GENERATION DB VERSION in DBInfo IF UPDATING. CURRENTLY SET TO VERSION 5
         }
         Log.d("GetAllProducts", productQueries.selectAll().executeAsList().toString())
         Log.d("GetAllDBInfo", dbinfoQueries.selectAll().executeAsList().toString())

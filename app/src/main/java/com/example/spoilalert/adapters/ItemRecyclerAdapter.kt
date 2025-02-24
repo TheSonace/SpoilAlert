@@ -52,7 +52,6 @@ class ItemAdapter(context: Context, data: MutableList<ItemModel>?) :
         holder.tvDaysLeft.text = diff.toString()
         holder.deleteButton.setOnClickListener {
             delete(pos, key)}
-
         if (diff <= 3){
             holder.tvspoildate.setTextColor(Color.parseColor("RED"))
             holder.tvDaysLeft.setTextColor(Color.parseColor("RED"))
@@ -60,6 +59,16 @@ class ItemAdapter(context: Context, data: MutableList<ItemModel>?) :
         else {
             holder.tvspoildate.setTextColor(Color.parseColor("#80000000"))
             holder.tvDaysLeft.setTextColor(Color.parseColor("#80000000"))
+        }
+
+        if (item.location == "Fridge") {
+            holder.locationIcon.setImageResource(R.mipmap.ic_fridge_round)
+        }
+        if (item.location == "Freezer") {
+            holder.locationIcon.setImageResource(R.mipmap.ic_freezer_round)
+        }
+        if (item.location == "Pantry") {
+            holder.locationIcon.setImageResource(R.mipmap.ic_pantry_round)
         }
 
     }
@@ -83,6 +92,7 @@ class ItemAdapter(context: Context, data: MutableList<ItemModel>?) :
     class ItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var tvspoildate: TextView = itemView.findViewById(R.id.tvspoildate)
         var tvDaysLeft: TextView = itemView.findViewById(R.id.tvDaysLeft)
+        var locationIcon: ImageView = itemView.findViewById(R.id.tvLocation)
         var deleteButton: ImageView = itemView.findViewById(R.id.deleteButton)
 
     }

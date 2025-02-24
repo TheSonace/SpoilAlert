@@ -39,8 +39,19 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:layout_toEndOf="@id/tvDaysLeftText"
-            android:layout_toStartOf="@id/deleteButton"
+            android:layout_toStartOf="@id/tvLocation"
             />
+
+        <ImageView
+            android:id="@+id/tvLocation"
+            android:layout_width="36dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_toStartOf="@id/deleteButton"
+            android:layout_alignTop="@id/deleteButton"
+            android:layout_alignBottom="@id/deleteButton" />
+<!--            app:srcCompat="@mipmap/ic_pantry_round" -->
+<!--            />-->
 
         <ImageView
             android:id="@+id/deleteButton"

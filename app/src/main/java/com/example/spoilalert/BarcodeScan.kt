@@ -9,7 +9,9 @@ import android.os.Bundle
 import android.util.Log
 import android.view.SurfaceHolder
 import android.view.View
+import android.widget.DatePicker
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import android.widget.ViewFlipper
@@ -18,23 +20,17 @@ import androidx.lifecycle.lifecycleScope
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.example.spoilalert.databinding.ActivityBarcodeScanBinding
 import com.example.spoilalert.enginebuilder.OpenFoodFactsKtorClient
-import com.example.spoilalert.model.SelectedImage
-import com.example.spoilalert.model.SelectedImages
 import com.google.android.gms.vision.CameraSource
 import com.google.android.gms.vision.Detector
 import com.google.android.gms.vision.barcode.Barcode
 import com.google.android.gms.vision.barcode.BarcodeDetector
 import kotlinx.coroutines.launch
 import java.io.IOException
-import java.lang.NullPointerException
 import java.net.HttpURLConnection
 import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
-import kotlin.reflect.full.declaredMemberFunctions
-import kotlin.reflect.full.declaredMemberProperties
-import kotlin.reflect.full.primaryConstructor
 
 
 var latestbarcodescan = ""
@@ -59,15 +55,7 @@ class BarcodeScan : AppCompatActivity() {
     var spoildate = ""
     var cal = Calendar.getInstance()
 
-    private val dateSetListener = DatePickerDialog.OnDateSetListener { view, year, monthOfYear, dayOfMonth ->
-        cal.set(Calendar.YEAR, year)
-        cal.set(Calendar.MONTH, monthOfYear)
-        cal.set(Calendar.DAY_OF_MONTH, dayOfMonth)
-        spoildate = sdf.format(cal.time)
-        addItemtoDB(spoildate)
-    }
 
-    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d("TAG", productQueries.selectAll().executeAsList().toString())
         super.onCreate(savedInstanceState)
@@ -297,16 +285,59 @@ class BarcodeScan : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("ResourceType")
     private fun openDatePicker() {
-        DatePickerDialog(this@BarcodeScan, R.style.CustomDatePickerDialogTheme, dateSetListener,
-            cal.get(Calendar.YEAR),
-            cal.get(Calendar.MONTH),
-            cal.get(Calendar.DAY_OF_MONTH)).show()
+//        DatePickerDialog(this@BarcodeScan, R.style.CustomDatePickerDialogTheme, dateSetListener,
+//            cal.get(Calendar.YEAR),
+//            cal.get(Calendar.MONTH),
+//            cal.get(Calendar.DAY_OF_MONTH)).show()
+        val builder: AlertDialog.Builder = AlertDialog.Builder(this)
+        val customLayout: View = layoutInflater.inflate(R.layout.dialog_datepicker_custom, null)
+        builder.setView(customLayout)
+        val monthDate: DatePicker = customLayout.findViewById(R.id.CustomDatePicker)
+        monthDate.init(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH), null)
+
+        val freezer: ImageView = customLayout.findViewById(R.id.imageView2)
+        val pantry: ImageView = customLayout.findViewById(R.id.imageView3)
+        val fridge: ImageView = customLayout.findViewById(R.id.imageView4)
+
+        val dialog: AlertDialog = builder.create()
+        dialog.show()
+
+        fridge.setOnClickListener {
+            cal.set(Calendar.YEAR, monthDate.year)
+            cal.set(Calendar.MONTH, monthDate.month)
+            cal.set(Calendar.DAY_OF_MONTH, monthDate.dayOfMonth)
+            spoildate = sdf.format(cal.time)
+            addItemtoDB(spoildate, "Fridge")
+            dialog.dismiss()
+            // still need to add location tag
+        }
+
+        pantry.setOnClickListener {
+            cal.set(Calendar.YEAR, monthDate.year)
+            cal.set(Calendar.MONTH, monthDate.month)
+            cal.set(Calendar.DAY_OF_MONTH, monthDate.dayOfMonth)
+            spoildate = sdf.format(cal.time)
+            addItemtoDB(spoildate, "Pantry")
+            dialog.dismiss()
+            // still need to add location tag
+        }
+
+        freezer.setOnClickListener {
+            cal.set(Calendar.YEAR, monthDate.year)
+            cal.set(Calendar.MONTH, monthDate.month)
+            cal.set(Calendar.DAY_OF_MONTH, monthDate.dayOfMonth)
+            spoildate = sdf.format(cal.time)
+            addItemtoDB(spoildate, "Freezer")
+            dialog.dismiss()
+            // still need to add location tag
+        }
     }
 
-    private fun addItemtoDB(spoildate: String) {
+    private fun addItemtoDB(spoildate: String, location: String) {
         scandatetime = sdf.format(Calendar.getInstance().time).toString()
-        itemQueries.insert(latestbarcodescan, spoildate, scandatetime)
+        itemQueries.insert(latestbarcodescan, spoildate, scandatetime, location)
         Toast.makeText(applicationContext, "Item " + itemtobeAdded + " of " + itemsRequired + " has been saved", Toast.LENGTH_SHORT).show()
         if (itemtobeAdded == itemsRequired){
             switchToScan()}

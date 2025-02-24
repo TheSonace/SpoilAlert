@@ -3,7 +3,8 @@ CREATE TABLE item_data (
   barCode TEXT NOT NULL,
   spoildate TEXT NOT NULL,
   scandatetime TEXT NOT NULL,
-  removedatetime TEXT
+  removedatetime TEXT,
+  location TEXT
 );
 
 CREATE INDEX item_data_barcode ON item_data(barCode);
@@ -14,8 +15,8 @@ FROM item_data
 WHERE removedatetime IS NULL;
 
 insert:
-INSERT INTO item_data (barCode, spoildate, scandatetime)
-VALUES(?, ?, ?);
+INSERT INTO item_data (barCode, spoildate, scandatetime, location)
+VALUES(?, ?, ?, ?);
 
 removedfromstock:
 UPDATE item_data
@@ -55,7 +56,7 @@ WHERE barCode = ? AND removedatetime IS NULL
 GROUP BY barCode ;
 
 selectjson:
-SELECT item_data.RecordKey, item_data.barCode, (product_data.product || ', ' || product_data.brand) AS Item, product_data.brand, product_data.product, spoildate
+SELECT item_data.RecordKey, item_data.barCode, (product_data.product || ', ' || product_data.brand) AS Item, product_data.brand, product_data.product, spoildate, location
 FROM item_data
 LEFT JOIN product_data ON item_data.barCode = product_data.barCode
 WHERE item_data.removedatetime IS NULL

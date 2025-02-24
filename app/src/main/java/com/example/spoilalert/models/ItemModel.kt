@@ -16,5 +16,7 @@ data class ItemModel(
     @SerializedName("product")
     var product: String,
     @SerializedName("spoildate")
-    val spoildate: Date
+    val spoildate: Date,
+    @SerializedName("location")
+    var location: String,
 ) : Serializable
