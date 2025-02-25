@@ -48,6 +48,7 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?,
         return ProductViewHolder(view)
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     override
     fun onBindViewHolder(holder: ProductViewHolder, position: Int) {
 
@@ -70,42 +71,12 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?,
             binding.introButton1.visibility = View.INVISIBLE
         }
 
-        if (item.item_data.isEmpty()) {
-            val key = item.item_data
-            val pos = items?.indexOfFirst {it.item_data == key}
-            if (pos != null) {
-                items?.removeAt(pos)
-                holder.rvHeadlines.post(Runnable {
-                    notifyDataSetChanged()
-                    try { notifyItemRangeChanged(pos, itemCount) }
-                    catch (_: IndexOutOfBoundsException) {}
-
-                })
-            }
-        }
-
         holder.tvName.text = item.name
         holder.tvDate.text = formatter.format(item.min_spoildate)
         itemAdapter = ItemAdapter(mContext, item.item_data)
         holder.rvHeadlines.adapter = itemAdapter
         holder.rvHeadlines.layoutManager = LinearLayoutManager(mContext)
-        holder.tvName.setOnClickListener { onItemClicked(item) }
 
-        holder.prodInfo.setOnClickListener {
-            val productpreviewlist = productQueries.getimg(item.barCode).executeAsList()[0]
-            var myBitmap: Bitmap? = null
-            if (productpreviewlist != "null") {
-                val filename = item.barCode
-                DownloadAndSaveImageTask(mContext, filename).execute(productpreviewlist)
-                val file = File(File(mContext.filesDir, "Products"), "$filename.jpg")
-                if (file.exists()) {
-                    myBitmap = BitmapFactory.decodeFile(file.toString())
-                }
-            }
-            MainActivity.openPreview(productpreviewlist, item, binding, myBitmap)
-            }
-
-        holder.ivArrow.setOnClickListener { onItemClicked(item) }
         try {
             val expiryDate = item.item_data[0].spoildate
 
@@ -121,6 +92,28 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?,
             }}
         catch (_: IndexOutOfBoundsException) {}
 
+        holder.tvName.setOnClickListener { onItemClicked(item, holder) }
+
+        holder.ivArrow.setOnClickListener { onItemClicked(item, holder) }
+
+        holder.prodInfo.setOnClickListener {
+            val record = productQueries.getRecordKey(item.barCode).executeAsList()[0]
+            val img_loc = productQueries.getimg(record).executeAsList()[0]
+            var myBitmap: Bitmap? = null
+            if (img_loc != "null") {
+                val filename = record
+                val file = File(File(mContext.filesDir, "Products"), "$filename.jpg")
+                if (!file.exists()) {
+                    DownloadAndSaveImageTask(mContext, filename, database).execute(img_loc)
+                    if (file.exists()) {
+                    }
+                }
+                if (file.exists()) {
+                    myBitmap = BitmapFactory.decodeFile(file.toString())
+                }
+            }
+            MainActivity.openPreview(img_loc, item, binding, myBitmap)
+            }
 
         if (item.isExpanded!!) {
             holder.rvHeadlines.visibility = View.VISIBLE
@@ -144,9 +137,22 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?,
         return items?.size ?: 0
     }
 
-    private fun onItemClicked(productModel: ProductModel?) {
+    private fun onItemClicked(productModel: ProductModel?, holder: ProductViewHolder) {
         productModel?.isExpanded = !productModel?.isExpanded!!
-        notifyDataSetChanged()
+        if (productModel.item_data.isEmpty()) {
+            val key = productModel.item_data
+            val pos = items?.indexOfFirst {it.item_data == key}
+            if (pos != null) {
+                items?.removeAt(pos)
+                holder.rvHeadlines.post(Runnable {
+                    try {
+                        notifyDataSetChanged()
+                        notifyItemRangeChanged(pos, itemCount)}
+                    catch (_: IndexOutOfBoundsException) {}
+                })
+            }
+        }
+        else (notifyDataSetChanged())
     }
 
     class ProductViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

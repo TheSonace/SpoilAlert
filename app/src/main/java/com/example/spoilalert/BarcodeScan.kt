@@ -149,7 +149,7 @@ class BarcodeScan : AppCompatActivity() {
                             latestbarcodescan = getbarcode
 //                            Log.e("barcode nr", latestbarcodescan)
                             val viewFlipper = binding.myViewFlipper
-                            Thread.sleep(1000)
+                            Thread.sleep(200)
                             try {productQueries.localcheck(getbarcode).executeAsList()[0]}
                             catch (_: IndexOutOfBoundsException) {
 //                                Log.e("Adding Data!!", latestbarcodescan)
@@ -158,10 +158,23 @@ class BarcodeScan : AppCompatActivity() {
                             try {
                                 val localProduct =
                                     productQueries.getlocal(latestbarcodescan).executeAsList()[0]
-                                if (localProduct.image != "null") {
-                                    DownloadAndSaveImageTask(this@BarcodeScan, latestbarcodescan).execute(localProduct.image)}
-                                binding.flipperMedia.prodInfo.imageView.setImageBitmap(
-                                    loadImageFromWebOperations(localProduct.image))
+                                val record = localProduct.RecordKey
+                                val img_loc = productQueries.getimg(record).executeAsList()[0]
+                                var myBitmap: Bitmap? = null
+                                if (img_loc != "null") {
+                                    val filename = record
+                                    val file = File(File(this@BarcodeScan.filesDir, "Products"), "$filename.jpg")
+                                    if (!file.exists()) {
+                                        DownloadAndSaveImageTask(this@BarcodeScan, filename, database).execute(img_loc)
+                                        myBitmap = loadImageFromWebOperations(localProduct.image)
+                                        if (file.exists()) {
+                                        }
+                                    }
+                                    if (file.exists()) {
+                                        myBitmap = BitmapFactory.decodeFile(file.toString())
+                                    }
+                                }
+                                binding.flipperMedia.prodInfo.imageView.setImageBitmap(myBitmap)
                                 binding.flipperMedia.prodInfo.tvProductName.text = localProduct.product + ", "
                                 binding.flipperMedia.prodInfo.tvProductBrand.text = localProduct.brand
                                 binding.flipperMedia.prodInfo.tvbarCode.text = latestbarcodescan

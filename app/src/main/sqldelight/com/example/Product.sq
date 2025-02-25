@@ -32,6 +32,10 @@ FROM product_data WHERE barCode = :barcode;
 
 getimg:
 SELECT image
+FROM product_data WHERE RecordKey = :recordkey;
+
+getRecordKey:
+SELECT RecordKey
 FROM product_data WHERE barCode = :barcode;
 
 insert_new:
@@ -46,4 +50,7 @@ update_brand:
 UPDATE product_data SET brand = ? WHERE brand = ? AND barCode = ?;
 
 update_product:
-UPDATE product_data SET product = ? WHERE product = ? AND barCode = ?;
+UPDATE product_data SET product = :new_prod WHERE product = :old_prod AND barCode = :barcode;
+
+update_image:
+UPDATE product_data SET image = ? WHERE RecordKey = ?;

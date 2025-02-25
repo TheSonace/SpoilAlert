@@ -4,9 +4,8 @@ import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Bitmap
-import android.os.Build.VERSION.SDK_INT
+import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.os.Parcelable
 import android.util.Log
 import android.view.View
 import android.widget.EditText
@@ -28,7 +27,8 @@ import com.example.spoilalert.databinding.ActivityMainBinding
 import com.example.spoilalert.enginebuilder.OpenFoodFactsKtorClient
 import com.example.spoilalert.models.ProductModel
 import com.example.spoilalert.utils.JsonConverter
-import com.google.android.gms.vision.CameraSource
+import java.io.File
+import java.io.FileOutputStream
 
 
 class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.OnGestureListener {
@@ -42,6 +42,7 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
     private val dbinfoQueries = database.dBInfoQueries
     private var mRecyclerView: RecyclerView? = null
     private val productQueries = database.productQueries
+    private lateinit var cameraProvider: ProcessCameraProvider
 
     @SuppressLint("QueryPermissionsNeeded")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -76,7 +77,7 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
         ) {
             if (it) {
                 val viewFlipper = binding.myViewFlipper
-                viewFlipper.displayedChild = viewFlipper.indexOfChild(binding.flipperMediaCamera.viewFinder)
+                viewFlipper.displayedChild = viewFlipper.indexOfChild(binding.flipperMediaCamera.cameraImagePreviewLayout)
                 startCamera()
             } else {
                 Toast.makeText(this, "Permission Not Granted", Toast.LENGTH_SHORT).show()
@@ -89,6 +90,38 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
 
         binding.flipperMedia.editImageButton.setOnClickListener{
             cameraLauncher?.launch(android.Manifest.permission.CAMERA)
+        }
+
+        binding.flipperMediaCamera.AddImageSaveButton.setOnClickListener{
+            val bitmap = binding.flipperMediaCamera.viewFinder.getBitmap()
+            val fileName = productQueries.getRecordKey(binding.flipperMedia.tvbarCode.text.toString()).executeAsList()[0]
+            if (bitmap == null) {}
+            else {
+                try {
+                    var file = File(this.filesDir, "Products")
+                    if (!file.exists()) {
+                        file.mkdir()
+                    }
+                    file = File(file, "$fileName.jpg")
+                    val out = FileOutputStream(file)
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+                    out.flush()
+                    out.close()
+                    productQueries.update_image(file.toString(), fileName)
+                    binding.flipperMedia.imageView.setImageBitmap(BitmapFactory.decodeFile(file.toString()))
+                    if (binding.myViewFlipper.displayedChild == binding.myViewFlipper.indexOfChild(binding.flipperMediaCamera.cameraImagePreviewLayout)){
+                        mStopCamera()
+                        binding.myViewFlipper.displayedChild = binding.myViewFlipper.indexOfChild(binding.flipperMedia.productView)
+                        Toast.makeText(this, "Image Overwritten", Toast.LENGTH_SHORT).show()}
+                    else {
+                        Toast.makeText(this, "Image Saved", Toast.LENGTH_SHORT).show()
+                    }
+                } catch (e: Exception) {
+                    Log.i("SpoilAlert", "Failed to save image.")
+                }
+            }
+
+
         }
 
         binding.flipperMedia.tvProductName.setOnClickListener{
@@ -137,7 +170,7 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
 
         cameraProviderFuture.addListener({
             // Used to bind the lifecycle of cameras to the lifecycle owner
-            val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
+            cameraProvider = cameraProviderFuture.get()
 
             // Preview
             val preview = Preview.Builder()
@@ -163,6 +196,11 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
 
         }, ContextCompat.getMainExecutor(this))
     }
+
+    private fun mStopCamera() {
+        cameraProvider.unbindAll()
+    }
+
 
     @SuppressLint("SetTextI18n")
     private fun updateProductInfoDialog(item: String, value: String, barCode: String) {
@@ -267,7 +305,8 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
         val viewFlipper = binding.myViewFlipper
         if (viewFlipper.displayedChild == viewFlipper.indexOfChild(binding.flipperMedia.productView)){
             returnToMain()}
-        else if (viewFlipper.displayedChild == viewFlipper.indexOfChild(binding.flipperMediaCamera.viewFinder)){
+        else if (viewFlipper.displayedChild == viewFlipper.indexOfChild(binding.flipperMediaCamera.cameraImagePreviewLayout)){
+            mStopCamera()
             viewFlipper.displayedChild = viewFlipper.indexOfChild(binding.flipperMedia.productView)}
         else if (binding.mainAddSlidingDrawer.isOpened) {binding.mainAddSlidingDrawer.animateClose()}
         else if (binding.mainMenuSlidingDrawer.isOpened) {binding.mainMenuSlidingDrawer.animateClose()}
