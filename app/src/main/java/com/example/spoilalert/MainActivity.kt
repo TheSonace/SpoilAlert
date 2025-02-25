@@ -51,6 +51,9 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
         binding = ActivityMainBinding.inflate(layoutInflater)
         enableEdgeToEdge()
         setContentView(binding.root)
+
+        binding.mainAddSlidingDrawer.animateOpen()
+        binding.mainMenuSlidingDrawer.animateOpen()
 //        gestureDetector = GestureDetector(this, this)
 
         requestCamera = registerForActivityResult(
@@ -211,13 +214,14 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
     override fun onBackPressed() {
         val viewFlipper = binding.myViewFlipper
         if (viewFlipper.displayedChild == viewFlipper.indexOfChild(binding.flipperMedia.productView)){
-            returnToMain()
-        }
+            returnToMain()}
+        else if (binding.mainAddSlidingDrawer.isOpened) {binding.mainAddSlidingDrawer.animateClose()}
+        else if (binding.mainMenuSlidingDrawer.isOpened) {binding.mainMenuSlidingDrawer.animateClose()}
         else {super.onBackPressed()}
         //super.onBackPressed();
     }
 
-    fun returnToMain() {
+    private fun returnToMain() {
         val viewFlipper = binding.myViewFlipper
         viewFlipper.displayedChild = viewFlipper.indexOfChild(binding.main)
     }
@@ -237,6 +241,8 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
             viewFlipper.displayedChild = viewFlipper.indexOfChild(binding.flipperMedia.productView)
         }
     }
+
+
 
 
 
