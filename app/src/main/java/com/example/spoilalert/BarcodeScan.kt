@@ -20,11 +20,13 @@ import androidx.lifecycle.lifecycleScope
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.example.spoilalert.databinding.ActivityBarcodeScanBinding
 import com.example.spoilalert.enginebuilder.OpenFoodFactsKtorClient
+import com.example.spoilalert.utils.DownloadAndSaveImageTask
 import com.google.android.gms.vision.CameraSource
 import com.google.android.gms.vision.Detector
 import com.google.android.gms.vision.barcode.Barcode
 import com.google.android.gms.vision.barcode.BarcodeDetector
 import kotlinx.coroutines.launch
+import java.io.File
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
@@ -145,20 +147,24 @@ class BarcodeScan : AppCompatActivity() {
                         val getbarcode = barcodes.valueAt(0).displayValue
                         if(latestbarcodescan != getbarcode){
                             latestbarcodescan = getbarcode
+//                            Log.e("barcode nr", latestbarcodescan)
                             val viewFlipper = binding.myViewFlipper
+                            Thread.sleep(1000)
                             try {productQueries.localcheck(getbarcode).executeAsList()[0]}
                             catch (_: IndexOutOfBoundsException) {
+//                                Log.e("Adding Data!!", latestbarcodescan)
                                 lifecycleScope.launch {
                                     downloadProduct(getbarcode)}}
                             try {
                                 val localProduct =
                                     productQueries.getlocal(latestbarcodescan).executeAsList()[0]
+                                if (localProduct.image != "null") {
+                                    DownloadAndSaveImageTask(this@BarcodeScan, latestbarcodescan).execute(localProduct.image)}
                                 binding.flipperMedia.prodInfo.imageView.setImageBitmap(
                                     loadImageFromWebOperations(localProduct.image))
                                 binding.flipperMedia.prodInfo.tvProductName.text = localProduct.product + ", "
                                 binding.flipperMedia.prodInfo.tvProductBrand.text = localProduct.brand
                                 binding.flipperMedia.prodInfo.tvbarCode.text = latestbarcodescan
-//                                    binding.flipperMedia.imageView.setImageBitmap(img)
                                 runOnUiThread(Runnable { switchToPreview(viewFlipper) })
                             } catch(_: NullPointerException) {}
                         }
@@ -249,7 +255,6 @@ class BarcodeScan : AppCompatActivity() {
     suspend fun downloadProduct(getbarcode: String) {
         try {
             val json = ktorclient.fetchProductByCode(getbarcode)
-
             val brand = json.product?.brands.toString()
             val product = json.product?.productName.toString()
             val status = json.status.toString()

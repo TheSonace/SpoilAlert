@@ -93,12 +93,14 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?,
 
         holder.prodInfo.setOnClickListener {
             val productpreviewlist = productQueries.getimg(item.barCode).executeAsList()[0]
-            var filename = item.barCode
-            DownloadAndSaveImageTask(mContext, filename).execute(productpreviewlist)
             var myBitmap: Bitmap? = null
-            var file = File(File(mContext.filesDir, "Products"), "$filename.jpg")
-            if (file.exists()) {
-                myBitmap = BitmapFactory.decodeFile(file.toString())
+            if (productpreviewlist != "null") {
+                val filename = item.barCode
+                DownloadAndSaveImageTask(mContext, filename).execute(productpreviewlist)
+                val file = File(File(mContext.filesDir, "Products"), "$filename.jpg")
+                if (file.exists()) {
+                    myBitmap = BitmapFactory.decodeFile(file.toString())
+                }
             }
             MainActivity.openPreview(productpreviewlist, item, binding, myBitmap)
             }
