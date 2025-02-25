@@ -167,4 +167,8 @@
         layout="@layout/activity_main_product_info"
         android:id="@+id/flipper_media" />
 
+    <include
+        layout="@layout/camera_image_preview"
+        android:id="@+id/flipper_media_camera" />
+
 </ViewFlipper>

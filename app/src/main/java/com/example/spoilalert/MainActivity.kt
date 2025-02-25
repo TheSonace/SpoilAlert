@@ -2,23 +2,24 @@ package com.example.spoilalert
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
-import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Bitmap
+import android.os.Build.VERSION.SDK_INT
 import android.os.Bundle
+import android.os.Parcelable
 import android.util.Log
-import android.view.GestureDetector
-import android.view.MotionEvent
 import android.view.View
-import android.view.View.OnTouchListener
 import android.widget.EditText
-import android.widget.SlidingDrawer
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
@@ -27,21 +28,22 @@ import com.example.spoilalert.databinding.ActivityMainBinding
 import com.example.spoilalert.enginebuilder.OpenFoodFactsKtorClient
 import com.example.spoilalert.models.ProductModel
 import com.example.spoilalert.utils.JsonConverter
+import com.google.android.gms.vision.CameraSource
 
 
 class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.OnGestureListener {
     val ktorclient = OpenFoodFactsKtorClient()
-    private var requestCamera: ActivityResultLauncher<String>? = null
+    private var scanBarcode: ActivityResultLauncher<String>? = null
+    private var cameraLauncher: ActivityResultLauncher<String>? = null
     private lateinit var binding: ActivityMainBinding
     val driver = AndroidSqliteDriver(Database.Schema, this, "launch.db")
-    val database = Database(driver)
-    val itemQueries = database.itemQueries
+    private val database = Database(driver)
+    private val itemQueries = database.itemQueries
     private val dbinfoQueries = database.dBInfoQueries
-    var mRecyclerView: RecyclerView? = null
+    private var mRecyclerView: RecyclerView? = null
     private val productQueries = database.productQueries
 
-//    private lateinit var gestureDetector: GestureDetector
-
+    @SuppressLint("QueryPermissionsNeeded")
     override fun onCreate(savedInstanceState: Bundle?) {
 //        itemQueries.deleteAll()
 //        productQueries.deleteAll()
@@ -56,7 +58,7 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
         binding.mainMenuSlidingDrawer.animateOpen()
 //        gestureDetector = GestureDetector(this, this)
 
-        requestCamera = registerForActivityResult(
+        scanBarcode = registerForActivityResult(
             ActivityResultContracts
                 .RequestPermission(),
         ) {
@@ -67,8 +69,26 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
                 Toast.makeText(this, "Permission Not Granted", Toast.LENGTH_SHORT).show()
             }
         }
-        binding.mainMenuStartScanButton.setOnClickListener() {
-            requestCamera?.launch(android.Manifest.permission.CAMERA)
+
+        cameraLauncher = registerForActivityResult(
+            ActivityResultContracts
+                .RequestPermission(),
+        ) {
+            if (it) {
+                val viewFlipper = binding.myViewFlipper
+                viewFlipper.displayedChild = viewFlipper.indexOfChild(binding.flipperMediaCamera.viewFinder)
+                startCamera()
+            } else {
+                Toast.makeText(this, "Permission Not Granted", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        binding.mainMenuStartScanButton.setOnClickListener {
+            scanBarcode?.launch(android.Manifest.permission.CAMERA)
+        }
+
+        binding.flipperMedia.editImageButton.setOnClickListener{
+            cameraLauncher?.launch(android.Manifest.permission.CAMERA)
         }
 
         binding.flipperMedia.tvProductName.setOnClickListener{
@@ -83,15 +103,15 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
                 binding.flipperMedia.tvbarCode.text.toString())
         }
 
-        binding.mainWatchAdd.setOnClickListener() {
+        binding.mainWatchAdd.setOnClickListener {
             Toast.makeText(applicationContext, "Placeholder for watch add button", Toast.LENGTH_SHORT).show()
         }
 
-        binding.mainMenuSettingsButton.setOnClickListener() {
+        binding.mainMenuSettingsButton.setOnClickListener {
             Toast.makeText(applicationContext, "Placeholder for settings button", Toast.LENGTH_SHORT).show()
         }
 
-        binding.mainMenuInfoButton.setOnClickListener() {
+        binding.mainMenuInfoButton.setOnClickListener {
             Toast.makeText(applicationContext, "Placeholder for info button", Toast.LENGTH_SHORT).show()
         }
     }
@@ -101,7 +121,7 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
 //        return super.dispatchTouchEvent(event)
 //    }
 
-    fun iniBc(){
+    private fun iniBc(){
         val allitems = itemQueries.selectjson().executeAsList()
 //        Log.d("All Items query", itemQueries.selectAll().executeAsList().toString())
 //        Log.d("All Items json query", allitems.toString())
@@ -110,6 +130,38 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
         val adapter = ProductAdapter(this, JsonConverter(this, allitems).getItemData(), binding)
         mRecyclerView!!.adapter = adapter
         mRecyclerView!!.layoutManager = LinearLayoutManager(this)
+    }
+
+    private fun startCamera() {
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+
+        cameraProviderFuture.addListener({
+            // Used to bind the lifecycle of cameras to the lifecycle owner
+            val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
+
+            // Preview
+            val preview = Preview.Builder()
+                .build()
+                .also {
+                    it.setSurfaceProvider(binding.flipperMediaCamera.viewFinder.surfaceProvider)
+                }
+
+            // Select back camera as a default
+            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
+            try {
+                // Unbind use cases before rebinding
+                cameraProvider.unbindAll()
+
+                // Bind use cases to camera
+                cameraProvider.bindToLifecycle(
+                    this, cameraSelector, preview)
+
+            } catch(exc: Exception) {
+                Log.e("Camera", "Use case binding failed", exc)
+            }
+
+        }, ContextCompat.getMainExecutor(this))
     }
 
     @SuppressLint("SetTextI18n")
@@ -215,6 +267,8 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
         val viewFlipper = binding.myViewFlipper
         if (viewFlipper.displayedChild == viewFlipper.indexOfChild(binding.flipperMedia.productView)){
             returnToMain()}
+        else if (viewFlipper.displayedChild == viewFlipper.indexOfChild(binding.flipperMediaCamera.viewFinder)){
+            viewFlipper.displayedChild = viewFlipper.indexOfChild(binding.flipperMedia.productView)}
         else if (binding.mainAddSlidingDrawer.isOpened) {binding.mainAddSlidingDrawer.animateClose()}
         else if (binding.mainMenuSlidingDrawer.isOpened) {binding.mainMenuSlidingDrawer.animateClose()}
         else {super.onBackPressed()}

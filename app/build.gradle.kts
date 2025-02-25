@@ -80,6 +80,11 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
 
+    //Camera
+    implementation("androidx.camera:camera-camera2:1.1.0-alpha04")
+    implementation("androidx.camera:camera-lifecycle:1.1.0-alpha04")
+    implementation("androidx.camera:camera-view:1.0.0-alpha21")
+
     //BitmapDL
     implementation("com.github.bumptech.glide:glide:4.4.0")
 

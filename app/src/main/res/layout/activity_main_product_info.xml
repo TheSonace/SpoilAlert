@@ -17,6 +17,19 @@
         android:layout_marginTop="32dp"
         />
 
+    <ImageView
+        android:id="@+id/editImageButton"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_alignBottom="@id/imageView"
+        android:layout_alignEnd="@id/imageView"
+        android:padding="5dp"
+        android:layout_margin="10dp"
+        android:clickable="true"
+        android:src="@drawable/ic_edit"
+        android:background="@drawable/circle_background"
+        />
+
     <TextView
         android:id="@+id/tvProductName"
         android:layout_width="wrap_content"
