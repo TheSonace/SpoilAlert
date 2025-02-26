@@ -162,18 +162,20 @@ class BarcodeScan : AppCompatActivity() {
                                 val img_loc = productQueries.getimg(record).executeAsList()[0]
                                 var myBitmap: Bitmap? = null
                                 if (img_loc != "null") {
-                                    val filename = record
-                                    val file = File(File(this@BarcodeScan.filesDir, "Products"), "$filename.jpg")
+                                    val fileName = record
+                                    val file = File(File(this@BarcodeScan.filesDir, "Products"), "$fileName.jpg")
                                     if (!file.exists()) {
-                                        DownloadAndSaveImageTask(this@BarcodeScan, filename, database).execute(img_loc)
+                                        DownloadAndSaveImageTask(this@BarcodeScan, fileName, database).execute(img_loc)
                                         myBitmap = loadImageFromWebOperations(localProduct.image)
                                         if (file.exists()) {
+                                            productQueries.update_image(file.toString(), fileName)
                                         }
                                     }
                                     if (file.exists()) {
                                         myBitmap = BitmapFactory.decodeFile(file.toString())
                                     }
                                 }
+                                else {}
                                 binding.flipperMedia.prodInfo.imageView.setImageBitmap(myBitmap)
                                 binding.flipperMedia.prodInfo.tvProductName.text = localProduct.product + ", "
                                 binding.flipperMedia.prodInfo.tvProductBrand.text = localProduct.brand

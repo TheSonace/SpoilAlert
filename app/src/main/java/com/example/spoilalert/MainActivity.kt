@@ -6,6 +6,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.text.format.Formatter
 import android.util.Log
 import android.view.View
 import android.widget.EditText
@@ -27,6 +28,7 @@ import com.example.spoilalert.databinding.ActivityMainBinding
 import com.example.spoilalert.enginebuilder.OpenFoodFactsKtorClient
 import com.example.spoilalert.models.ProductModel
 import com.example.spoilalert.utils.JsonConverter
+import com.example.spoilalert.utils.UpdateAndSaveImageTask
 import java.io.File
 import java.io.FileOutputStream
 
@@ -95,33 +97,13 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
         binding.flipperMediaCamera.AddImageSaveButton.setOnClickListener{
             val bitmap = binding.flipperMediaCamera.viewFinder.getBitmap()
             val fileName = productQueries.getRecordKey(binding.flipperMedia.tvbarCode.text.toString()).executeAsList()[0]
-            if (bitmap == null) {}
-            else {
-                try {
-                    var file = File(this.filesDir, "Products")
-                    if (!file.exists()) {
-                        file.mkdir()
-                    }
-                    file = File(file, "$fileName.jpg")
-                    val out = FileOutputStream(file)
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
-                    out.flush()
-                    out.close()
-                    productQueries.update_image(file.toString(), fileName)
-                    binding.flipperMedia.imageView.setImageBitmap(BitmapFactory.decodeFile(file.toString()))
-                    if (binding.myViewFlipper.displayedChild == binding.myViewFlipper.indexOfChild(binding.flipperMediaCamera.cameraImagePreviewLayout)){
-                        mStopCamera()
-                        binding.myViewFlipper.displayedChild = binding.myViewFlipper.indexOfChild(binding.flipperMedia.productView)
-                        Toast.makeText(this, "Image Overwritten", Toast.LENGTH_SHORT).show()}
-                    else {
-                        Toast.makeText(this, "Image Saved", Toast.LENGTH_SHORT).show()
-                    }
-                } catch (e: Exception) {
-                    Log.i("SpoilAlert", "Failed to save image.")
-                }
-            }
-
-
+            val file = UpdateAndSaveImageTask(this, fileName, database, bitmap).saveImage()
+            if (file != false) {
+                binding.flipperMedia.imageView.setImageBitmap(BitmapFactory.decodeFile(file.toString()))
+                binding.myViewFlipper.displayedChild = binding.myViewFlipper.indexOfChild(binding.flipperMedia.productView)
+                mStopCamera()
+                Toast.makeText(this, "Image Overwritten", Toast.LENGTH_SHORT).show()
+            } else {Log.i("SpoilAlert", "Failed to save image.")}
         }
 
         binding.flipperMedia.tvProductName.setOnClickListener{

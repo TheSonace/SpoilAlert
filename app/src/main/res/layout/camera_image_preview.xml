@@ -3,8 +3,9 @@
     android:id="@+id/camera_image_preview_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginTop="32dp"
+    android:layout_marginTop="36dp"
     android:layout_marginBottom="48dp"
+    android:background="@color/colorBgMain"
     >
 
     <androidx.camera.view.PreviewView
