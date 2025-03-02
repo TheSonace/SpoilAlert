@@ -297,8 +297,7 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
     }
 
     private fun returnToMain() {
-        val viewFlipper = binding.myViewFlipper
-        viewFlipper.displayedChild = viewFlipper.indexOfChild(binding.main)
+        binding.myViewFlipper.displayedChild = binding.myViewFlipper.indexOfChild(binding.main)
     }
 
     companion object {

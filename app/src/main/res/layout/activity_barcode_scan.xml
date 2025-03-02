@@ -32,4 +32,8 @@
         layout="@layout/activity_barcode_scan_preview"
         android:id="@+id/flipper_media" />
 
+    <include
+        layout="@layout/camera_image_preview"
+        android:id="@+id/flipper_media_camera" />
+
 </ViewFlipper>

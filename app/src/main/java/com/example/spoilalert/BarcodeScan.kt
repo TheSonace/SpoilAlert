@@ -15,12 +15,19 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import android.widget.ViewFlipper
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.example.spoilalert.databinding.ActivityBarcodeScanBinding
 import com.example.spoilalert.enginebuilder.OpenFoodFactsKtorClient
 import com.example.spoilalert.utils.DownloadAndSaveImageTask
+import com.example.spoilalert.utils.UpdateAndSaveImageTask
 import com.google.android.gms.vision.CameraSource
 import com.google.android.gms.vision.Detector
 import com.google.android.gms.vision.barcode.Barcode
@@ -46,6 +53,9 @@ class BarcodeScan : AppCompatActivity() {
     val itemQueries = database.itemQueries
     val productQueries = database.productQueries
 
+    private var cameraLauncher: ActivityResultLauncher<String>? = null
+    private lateinit var cameraProvider: ProcessCameraProvider
+
     val myFormat = "yyyyMMdd"
     val sdf = SimpleDateFormat(myFormat, Locale.US)
 
@@ -64,6 +74,19 @@ class BarcodeScan : AppCompatActivity() {
         supportActionBar?.hide()
         binding = ActivityBarcodeScanBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        cameraLauncher = registerForActivityResult(
+            ActivityResultContracts
+                .RequestPermission(),
+        ) {
+            if (it) {
+                val viewFlipper = binding.myViewFlipper
+                viewFlipper.displayedChild = viewFlipper.indexOfChild(binding.flipperMediaCamera.cameraImagePreviewLayout)
+                startCamera()
+            } else {
+                Toast.makeText(this, "Permission Not Granted", Toast.LENGTH_SHORT).show()
+            }
+        }
 
         binding.flipperMedia.btnAddItem.setOnClickListener {
             itemsRequired = Integer.parseInt(binding.flipperMedia.AddItems.text.toString())
@@ -87,6 +110,22 @@ class BarcodeScan : AppCompatActivity() {
         binding.button.setOnClickListener {
             Toast.makeText(applicationContext, "BarCode can't be detected in DataBase. " +
                     "Will need to manually add item.", Toast.LENGTH_SHORT).show()
+        }
+
+        binding.flipperMedia.prodInfo.editImageButton.setOnClickListener{
+            cameraLauncher?.launch(android.Manifest.permission.CAMERA)
+        }
+
+        binding.flipperMediaCamera.AddImageSaveButton.setOnClickListener{
+            val bitmap = binding.flipperMediaCamera.viewFinder.getBitmap()
+            val fileName = productQueries.getRecordKey(binding.flipperMedia.prodInfo.tvbarCode.text.toString()).executeAsList()[0]
+            val file = UpdateAndSaveImageTask(this, fileName, database, bitmap).saveImage()
+            if (file != false) {
+                binding.flipperMedia.prodInfo.imageView.setImageBitmap(BitmapFactory.decodeFile(file.toString()))
+                binding.myViewFlipper.displayedChild = binding.myViewFlipper.indexOfChild(binding.flipperMedia.main2)
+//                mStopCamera()
+                Toast.makeText(this, "Image Overwritten", Toast.LENGTH_SHORT).show()
+            } else {Log.i("SpoilAlert", "Failed to save image.")}
         }
 
         binding.flipperMedia.prodInfo.tvProductName.setOnClickListener{
@@ -193,6 +232,38 @@ class BarcodeScan : AppCompatActivity() {
         })
     }
 
+    private fun startCamera() {
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+
+        cameraProviderFuture.addListener({
+            // Used to bind the lifecycle of cameras to the lifecycle owner
+            cameraProvider = cameraProviderFuture.get()
+
+            // Preview
+            val preview = Preview.Builder()
+                .build()
+                .also {
+                    it.setSurfaceProvider(binding.flipperMediaCamera.viewFinder.surfaceProvider)
+                }
+
+            // Select back camera as a default
+            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
+            try {
+                // Unbind use cases before rebinding
+                cameraProvider.unbindAll()
+
+                // Bind use cases to camera
+                cameraProvider.bindToLifecycle(
+                    this, cameraSelector, preview)
+
+            } catch(exc: Exception) {
+                Log.e("Camera", "Use case binding failed", exc)
+            }
+
+        }, ContextCompat.getMainExecutor(this))
+    }
+
     @SuppressLint("SetTextI18n")
     private fun updateProductInfoDialog(item: String, value: String, barCode: String) {
         val columnName = item.replace(", ", "")
@@ -239,6 +310,7 @@ class BarcodeScan : AppCompatActivity() {
     }
 
     override fun onResume() {
+        Log.e("resumed?", "yes?")
         super.onResume()
         iniBc()
     }
@@ -249,6 +321,8 @@ class BarcodeScan : AppCompatActivity() {
         if (viewFlipper.displayedChild == viewFlipper.indexOfChild(binding.flipperMedia.main2)){
             switchToScan()
         }
+        else if (viewFlipper.displayedChild == viewFlipper.indexOfChild(binding.flipperMediaCamera.cameraImagePreviewLayout)){
+            switchToScan()}
         else {super.onBackPressed()}
         //super.onBackPressed();
     }
@@ -260,10 +334,16 @@ class BarcodeScan : AppCompatActivity() {
         viewFlipper.displayedChild = viewFlipper.indexOfChild(binding.flipperMedia.main2)
     }
 
+    @SuppressLint("MissingPermission")
     fun switchToScan() {
-        val viewFlipper = binding.myViewFlipper
-        viewFlipper.displayedChild = viewFlipper.indexOfChild(binding.main)
-        activeScanBoolean = 0
+        binding.myViewFlipper.displayedChild = binding.myViewFlipper.indexOfChild(binding.main)
+        onResume()
+        try {
+            cameraSource.start(binding.SurfaceView.holder)
+        }catch (e: IOException) {
+            e.printStackTrace()
+        }
+
     }
 
     operator fun get(index: Int) {}
@@ -331,7 +411,6 @@ class BarcodeScan : AppCompatActivity() {
             spoildate = sdf.format(cal.time)
             addItemtoDB(spoildate, "Fridge")
             dialog.dismiss()
-            // still need to add location tag
         }
 
         pantry.setOnClickListener {
@@ -341,7 +420,6 @@ class BarcodeScan : AppCompatActivity() {
             spoildate = sdf.format(cal.time)
             addItemtoDB(spoildate, "Pantry")
             dialog.dismiss()
-            // still need to add location tag
         }
 
         freezer.setOnClickListener {
@@ -351,7 +429,6 @@ class BarcodeScan : AppCompatActivity() {
             spoildate = sdf.format(cal.time)
             addItemtoDB(spoildate, "Freezer")
             dialog.dismiss()
-            // still need to add location tag
         }
     }
 
