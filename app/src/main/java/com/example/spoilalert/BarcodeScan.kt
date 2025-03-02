@@ -2,7 +2,6 @@ package com.example.spoilalert
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
-import android.app.DatePickerDialog
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
@@ -24,6 +23,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
+import com.example.Product_data
 import com.example.spoilalert.databinding.ActivityBarcodeScanBinding
 import com.example.spoilalert.enginebuilder.OpenFoodFactsKtorClient
 import com.example.spoilalert.utils.DownloadAndSaveImageTask
@@ -123,7 +123,6 @@ class BarcodeScan : AppCompatActivity() {
             if (file != false) {
                 binding.flipperMedia.prodInfo.imageView.setImageBitmap(BitmapFactory.decodeFile(file.toString()))
                 binding.myViewFlipper.displayedChild = binding.myViewFlipper.indexOfChild(binding.flipperMedia.main2)
-//                mStopCamera()
                 Toast.makeText(this, "Image Overwritten", Toast.LENGTH_SHORT).show()
             } else {Log.i("SpoilAlert", "Failed to save image.")}
         }
@@ -131,13 +130,17 @@ class BarcodeScan : AppCompatActivity() {
         binding.flipperMedia.prodInfo.tvProductName.setOnClickListener{
             updateProductInfoDialog("ProductName",
                 binding.flipperMedia.prodInfo.tvProductName.text.toString(),
-                binding.flipperMedia.prodInfo.tvbarCode.text.toString())
+                binding.flipperMedia.prodInfo.tvbarCode.text.toString(),
+                "update")
         }
 
         binding.flipperMedia.prodInfo.tvProductBrand.setOnClickListener{
-            updateProductInfoDialog("ProductBrand",
+            updateProductInfoDialog(
+                "ProductBrand",
                 binding.flipperMedia.prodInfo.tvProductBrand.text.toString(),
-                binding.flipperMedia.prodInfo.tvbarCode.text.toString())
+                binding.flipperMedia.prodInfo.tvbarCode.text.toString(),
+                "update"
+            )
         }
     }
 
@@ -220,6 +223,7 @@ class BarcodeScan : AppCompatActivity() {
                                 binding.flipperMedia.prodInfo.tvProductBrand.text = localProduct.brand
                                 binding.flipperMedia.prodInfo.tvbarCode.text = latestbarcodescan
                                 runOnUiThread(Runnable { switchToPreview(viewFlipper) })
+                                checkForNull(localProduct, latestbarcodescan)
                             } catch(_: NullPointerException) {}
                         }
                         else {
@@ -264,12 +268,29 @@ class BarcodeScan : AppCompatActivity() {
         }, ContextCompat.getMainExecutor(this))
     }
 
-    @SuppressLint("SetTextI18n")
-    private fun updateProductInfoDialog(item: String, value: String, barCode: String) {
+    private fun checkForNull(localProduct: Product_data, barCode: String) {
+        if (localProduct.product == "null") {
+            updateProductInfoDialog("ProductName", localProduct.product, barCode, "add")
+            checkForNull(localProduct, barCode)
+        }
+        else if (localProduct.brand == "null") {
+            updateProductInfoDialog("ProductBrand", localProduct.brand, barCode, "add")
+            checkForNull(localProduct, barCode)
+        }
+
+    }
+
+    private fun updateProductInfoDialog(item: String, value: String, barCode: String, type: String) {
         val columnName = item.replace(", ", "")
         var newItem : String = ""
-        if (columnName == "ProductName") { newItem = "Product Name"}
-        if (columnName == "ProductBrand") { newItem = "Product Brand"}
+        if (type == "add") {
+            if (columnName == "ProductName") { newItem = getString(R.string.addProductName)}
+            if (columnName == "ProductBrand") { newItem = getString(R.string.addProductBrand)}
+        }
+        else {
+            if (columnName == "ProductName") { newItem = getString(R.string.updateProductName)}
+            if (columnName == "ProductBrand") { newItem = getString(R.string.updateProductBrand)}
+        }
 
         val newValue = value.replace(", ", "")
         Log.e("Product Info Update", barCode)

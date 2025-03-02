@@ -13,4 +13,9 @@
         Let\'s start by adding your first product,\n
         starting your SpoilAlert journey!\n\n\n\n\n\n\n\n\n
         Slide the menu into view by \nswiping the Tab to the left.</string>
+    <string name="manual_scan">Manual Scan</string>
+    <string name="addProductName">Product Name not found, Please update:</string>
+    <string name="addProductBrand">Product Brand not found, Please update:</string>
+    <string name="updateProductName">Update Product Name:</string>
+    <string name="updateProductBrand">Update Product Brand:</string>
 </resources>

@@ -188,8 +188,8 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
     private fun updateProductInfoDialog(item: String, value: String, barCode: String) {
         val columnName = item.replace(", ", "")
         var newItem : String = ""
-        if (columnName == "ProductName") { newItem = "Product Name"}
-        if (columnName == "ProductBrand") { newItem = "Product Brand"}
+        if (columnName == "ProductName") { newItem = getString(R.string.updateProductName)}
+        if (columnName == "ProductBrand") { newItem = getString(R.string.updateProductBrand)}
 
         val newValue = value.replace(", ", "")
         Log.e("Product Info Update", barCode)
