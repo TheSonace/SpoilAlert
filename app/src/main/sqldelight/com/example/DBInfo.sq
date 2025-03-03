@@ -1,10 +1,11 @@
 CREATE TABLE IF NOT EXISTS DBInfo (
   RecordKey INTEGER PRIMARY KEY AUTOINCREMENT,
-  user_version INTEGER NOT NULL
+  user_version INTEGER NOT NULL,
+  tokens INTEGER NOT NULL DEFAULT 25
 );
 
 INSERT INTO DBInfo (user_version)
-VALUES(6);
+VALUES(7);
 
 selectAll:
 SELECT *
@@ -22,3 +23,15 @@ FROM DBInfo;
 
 update:
 UPDATE DBInfo SET user_version = ?;
+
+get_tokens:
+SELECT tokens
+FROM DBInfo
+ORDER BY RecordKey DESC
+LIMIT 1;
+
+update_tokens:
+UPDATE DBInfo SET tokens = tokens - 1;
+
+watched_add:
+UPDATE DBInfo SET tokens = tokens + 10;

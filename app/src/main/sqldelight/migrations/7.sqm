@@ -1,0 +1,5 @@
+ALTER TABLE DBInfo ADD COLUMN tokens INTEGER NOT NULL DEFAULT 25;
+
+UPDATE DBInfo SET tokens = 25;
+
+UPDATE DBInfo SET user_version = 7;

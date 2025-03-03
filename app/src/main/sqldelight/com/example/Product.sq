@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS product_data (
 );
 
 selectAll:
-SELECT RecordKey, product, product_url, null_check
+SELECT RecordKey, product, product_url, null_check, status
 FROM product_data;
 
 deleteAll:

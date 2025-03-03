@@ -50,8 +50,9 @@ var itemtobeAdded = 1
 class BarcodeScan : AppCompatActivity() {
     private val ktorclient = OpenFoodFactsKtorClient()
     val database = Database(AndroidSqliteDriver(Database.Schema, this, "launch.db"))
-    val itemQueries = database.itemQueries
+    private val itemQueries = database.itemQueries
     val productQueries = database.productQueries
+    private val dbinfoQueries = database.dBInfoQueries
 
     private var cameraLauncher: ActivityResultLauncher<String>? = null
     private lateinit var cameraProvider: ProcessCameraProvider
@@ -66,6 +67,8 @@ class BarcodeScan : AppCompatActivity() {
     var scandatetime = ""
     var spoildate = ""
     var cal = Calendar.getInstance()
+
+    var scans: Int = 0
 
 
     @SuppressLint("SetTextI18n")
@@ -91,7 +94,16 @@ class BarcodeScan : AppCompatActivity() {
 
         binding.flipperMedia.btnAddItem.setOnClickListener {
             itemsRequired = Integer.parseInt(binding.flipperMedia.AddItems.text.toString())
-            openDatePicker()
+            var x = 0
+            scans = dbinfoQueries.get_tokens().executeAsOne().toInt()
+            if (scans >= itemsRequired) {x = 1}
+            when (x) {
+                0 -> Toast.makeText(
+                    applicationContext,
+                    "No more tokens remaining, please watch an add to receive more",
+                    Toast.LENGTH_SHORT).show()
+                1 -> openDatePicker()
+            }
         }
 
         binding.flipperMedia.btnRemoveItem.setOnClickListener {
@@ -187,44 +199,42 @@ class BarcodeScan : AppCompatActivity() {
                 if (activeScanBoolean == 0) {
                     val barcodes = detections.detectedItems
                     if(barcodes.size()!=0){
-                        val getbarcode = barcodes.valueAt(0).displayValue
-                        if(latestbarcodescan != getbarcode){
-                            latestbarcodescan = getbarcode
+                        val getBarcode = barcodes.valueAt(0).displayValue
+                        if(latestbarcodescan != getBarcode){
+                            latestbarcodescan = getBarcode
 //                            Log.e("barcode nr", latestbarcodescan)
                             val viewFlipper = binding.myViewFlipper
                             Thread.sleep(200)
-                            try {productQueries.localcheck(getbarcode).executeAsList()[0]}
+                            try {productQueries.localcheck(getBarcode).executeAsList()[0]}
                             catch (_: IndexOutOfBoundsException) {
 //                                Log.e("Adding Data!!", latestbarcodescan)
                                 lifecycleScope.launch {
-                                    downloadProduct(getbarcode)}}
+                                    downloadProduct(getBarcode)}}
                             try {
                                 val localProduct =
                                     productQueries.getlocal(latestbarcodescan).executeAsList()[0]
                                 val record = localProduct.RecordKey
-                                val img_loc = productQueries.getimg(record).executeAsList()[0]
+                                val imgLoc = productQueries.getimg(record).executeAsList()[0]
                                 var myBitmap: Bitmap? = null
-                                if (img_loc != "null") {
-                                    val fileName = record
-                                    val file = File(File(this@BarcodeScan.filesDir, "Products"), "$fileName.jpg")
+                                if (imgLoc != "null") {
+                                    val file = File(File(this@BarcodeScan.filesDir, "Products"),
+                                        "$record.jpg")
                                     if (!file.exists()) {
-                                        DownloadAndSaveImageTask(this@BarcodeScan, fileName, database).execute(img_loc)
+                                        DownloadAndSaveImageTask(this@BarcodeScan, record, database).execute(imgLoc)
                                         myBitmap = loadImageFromWebOperations(localProduct.image)
                                         if (file.exists()) {
-                                            productQueries.update_image(file.toString(), fileName)
+                                            productQueries.update_image(file.toString(), record)
                                         }
                                     }
                                     if (file.exists()) {
                                         myBitmap = BitmapFactory.decodeFile(file.toString())
                                     }
                                 }
-                                else {}
                                 binding.flipperMedia.prodInfo.imageView.setImageBitmap(myBitmap)
                                 binding.flipperMedia.prodInfo.tvProductName.text = localProduct.product + ", "
                                 binding.flipperMedia.prodInfo.tvProductBrand.text = localProduct.brand
                                 binding.flipperMedia.prodInfo.tvbarCode.text = latestbarcodescan
                                 runOnUiThread(Runnable { switchToPreview(viewFlipper) })
-//                                checkForNull(localProduct, latestbarcodescan)
                             } catch(_: NullPointerException) {}
                         }
                         else {
@@ -391,21 +401,35 @@ class BarcodeScan : AppCompatActivity() {
 //            Log.d("string of nutriments", nutriments.toString())
 //            Log.d("string of nutriments count", nutriments.count().toString())
 //        }
-
-            productQueries.insert_new(
-                getbarcode,
-                getbarcode,
-                brand,
-                brand,
-                product,
-                product,
-                status,
-                productUrl,
-                productUrl,
-                image,
-                image,
-                sdf.format(cal.time)
-            )
+            var x = 0
+            scans = dbinfoQueries.get_tokens().executeAsOne().toInt()
+            if (status == "1" && scans > 0) {x = 1}
+            when (x) {
+                0 -> Toast.makeText(
+                    applicationContext,
+                    "No more tokens remaining, please watch an add to receive more",
+                    Toast.LENGTH_SHORT).show()
+                1 -> {productQueries.insert_new(
+                    getbarcode,
+                    getbarcode,
+                    brand,
+                    brand,
+                    product,
+                    product,
+                    status,
+                    productUrl,
+                    productUrl,
+                    image,
+                    image,
+                    sdf.format(cal.time)
+                    )
+                    dbinfoQueries.update_tokens()
+                    scans = dbinfoQueries.get_tokens().executeAsOne().toInt()
+                    Toast.makeText(
+                    applicationContext,
+                        "$scans tokens remaining, ",
+                    Toast.LENGTH_SHORT).show()}
+            }
         } catch (_: NullPointerException) {
             Toast.makeText(
                 applicationContext,
@@ -465,9 +489,19 @@ class BarcodeScan : AppCompatActivity() {
     private fun addItemtoDB(spoildate: String, location: String) {
         scandatetime = sdf.format(Calendar.getInstance().time).toString()
         itemQueries.insert(latestbarcodescan, spoildate, scandatetime, location)
-        Toast.makeText(applicationContext, "Item " + itemtobeAdded + " of " + itemsRequired + " has been saved", Toast.LENGTH_SHORT).show()
+        dbinfoQueries.update_tokens()
+        scans = dbinfoQueries.get_tokens().executeAsOne().toInt()
+        if (itemsRequired == 1) {
+            Toast.makeText(applicationContext, "Item has been saved" +
+                "\n$scans tokens remaining", Toast.LENGTH_SHORT).show()
+        }
+        else {
+            Toast.makeText(applicationContext, "Item $itemtobeAdded of $itemsRequired has been saved" +
+                "\n$scans tokens remaining", Toast.LENGTH_SHORT).show()
+        }
         if (itemtobeAdded == itemsRequired){
-            switchToScan()}
+            switchToScan()
+        }
         else {
             itemtobeAdded += 1
             openDatePicker()

@@ -51,6 +51,7 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
 //        itemQueries.deleteAll()
 //        productQueries.deleteAll()
         dbUpdateManager()
+        var scans: Int
 
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -119,7 +120,9 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
         }
 
         binding.mainWatchAdd.setOnClickListener {
-            Toast.makeText(applicationContext, "Placeholder for watch add button", Toast.LENGTH_SHORT).show()
+            dbinfoQueries.watched_add()
+            scans = dbinfoQueries.get_tokens().executeAsOne().toInt()
+            Toast.makeText(applicationContext, "Watched add! 10 tokens Added. $scans tokens remaining", Toast.LENGTH_SHORT).show()
         }
 
         binding.mainMenuSettingsButton.setOnClickListener {
@@ -282,7 +285,17 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
             } catch (_: RuntimeException) {
                 Log.e("Software version", "Software failed to update to Version: $versionNr")
             }
-            // DO NOT FORGET TO SET INITIAL TABLE GENERATION DB VERSION in DBInfo IF UPDATING. CURRENTLY SET TO VERSION 6
+        }
+
+        if (versionNr == "6") {
+            try {
+                Database.Schema.migrate(driver, oldVersion = 6, newVersion = 7)
+                versionNr = "7"
+                Log.d("Software version", "Software updated to Version: $versionNr")
+            } catch (_: RuntimeException) {
+                Log.e("Software version", "Software failed to update to Version: $versionNr")
+            }
+            // DO NOT FORGET TO SET INITIAL TABLE GENERATION DB VERSION in DBInfo IF UPDATING. CURRENTLY SET TO VERSION 7
             // DO NOT FORGET TO UPDATE SOFTWARE VERSION IN MIGRATION FILE
         }
 
