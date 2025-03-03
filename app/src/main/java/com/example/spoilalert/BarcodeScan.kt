@@ -310,7 +310,6 @@ class BarcodeScan : AppCompatActivity() {
         val customLayout: View = layoutInflater.inflate(R.layout.dialog_update_product_info, null)
         builder.setView(customLayout)
         val editText: TextView = customLayout.findViewById<EditText>(R.id.editText)
-        editText.text = newValue
         // add a button
         builder.setPositiveButton(
             "Update"

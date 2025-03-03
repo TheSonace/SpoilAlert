@@ -3,11 +3,11 @@ package com.example.spoilalert.adapters
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
@@ -22,6 +22,7 @@ import kotlin.math.ceil
 
 class ItemAdapter(context: Context, data: MutableList<ItemModel>?) :
     RecyclerView.Adapter<ItemAdapter.ItemViewHolder>() {
+    private var mContext: Context = context
 
     private val database = Database(AndroidSqliteDriver(Database.Schema, context, "launch.db"))
     private val itemQueries = database.itemQueries
@@ -33,6 +34,12 @@ class ItemAdapter(context: Context, data: MutableList<ItemModel>?) :
     private var inflater: LayoutInflater = LayoutInflater.from(context)
     @SuppressLint("SimpleDateFormat")
     var formatter = SimpleDateFormat("EEE, dd MMM yyyy")
+
+    interface ValueChangeListener {
+        fun onValueChange(newValue: String?)
+    }
+
+    private var valueChangeListener: ValueChangeListener? = null
 
     override
     fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemViewHolder {
@@ -50,6 +57,7 @@ class ItemAdapter(context: Context, data: MutableList<ItemModel>?) :
         val pos = items?.indexOfFirst {it.RecordKey == key}
         holder.tvspoildate.text = expiryDate.let { formatter.format(it) }
         holder.tvDaysLeft.text = diff.toString()
+        Log.e("delete button pressed?", holder.deleteButton.toString())
         holder.deleteButton.setOnClickListener {
             delete(pos, key)}
         if (diff <= 3){
@@ -86,6 +94,8 @@ class ItemAdapter(context: Context, data: MutableList<ItemModel>?) :
                 key.toLong())
             notifyItemRemoved(pos)
             notifyItemRangeChanged(pos, itemCount)
+            valueChangeListener?.onValueChange(itemCount.toString())
+            Log.e("Itemcount", itemCount.toString())
         }
     }
 
@@ -99,5 +109,9 @@ class ItemAdapter(context: Context, data: MutableList<ItemModel>?) :
 
     override fun getItemId(position: Int): Long {
         return position.toLong()
+    }
+
+    fun setValueChangeListener(valueChangeListener: ValueChangeListener) {
+        this.valueChangeListener = valueChangeListener
     }
 }

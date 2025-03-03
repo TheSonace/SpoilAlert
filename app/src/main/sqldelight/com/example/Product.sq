@@ -58,3 +58,7 @@ UPDATE product_data SET image = ? WHERE RecordKey = ?;
 
 set_nullcheck:
 UPDATE product_data SET null_check = 1 WHERE barCode =? AND brand != "null" AND product != "null" AND image != "null";
+
+get_nullcheck:
+SELECT null_check
+FROM product_data WHERE barCode = :barcode;

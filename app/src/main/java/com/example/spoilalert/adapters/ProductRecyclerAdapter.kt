@@ -22,7 +22,6 @@ import com.example.spoilalert.databinding.ActivityMainBinding
 import com.example.spoilalert.models.ProductModel
 import com.example.spoilalert.utils.DownloadAndSaveImageTask
 import java.io.File
-import java.lang.NullPointerException
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import kotlin.math.ceil
@@ -71,7 +70,10 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?,
             binding.introButton1.visibility = View.INVISIBLE
         }
 
-        // ADD PRODINFOBUTTONBACKGROUND CODE HERE
+        if (productQueries.get_nullcheck(item.barCode).executeAsList()[0].toInt() == 0) {
+            holder.prodInfo.setBackgroundResource(R.drawable.circle_border_red)
+        }
+        else {holder.prodInfo.setBackgroundResource(android.R.color.transparent)}
 
         holder.tvName.text = item.name
         holder.tvDate.text = formatter.format(item.min_spoildate)
@@ -98,8 +100,17 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?,
 
         holder.ivArrow.setOnClickListener { onItemClicked(item, holder) }
 
+        itemAdapter!!.setValueChangeListener(object : ItemAdapter.ValueChangeListener {
+            override fun onValueChange(newValue: String?) {
+                if (newValue == "0") {
+                onItemClicked(item, holder)}
+            }
+        })
+
         holder.prodInfo.setOnClickListener {
             productQueries.set_nullcheck(item.barCode)
+            if (productQueries.get_nullcheck(item.barCode).executeAsList()[0].toInt() == 1) {
+                holder.prodInfo.setBackgroundResource(android.R.color.transparent)}
             val record = productQueries.getRecordKey(item.barCode).executeAsList()[0]
             val img_loc = productQueries.getimg(record).executeAsList()[0]
             var myBitmap: Bitmap? = null
@@ -143,6 +154,7 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?,
     private fun onItemClicked(productModel: ProductModel?, holder: ProductViewHolder) {
         productModel?.isExpanded = !productModel?.isExpanded!!
         if (productModel.item_data.isEmpty()) {
+            Log.e("empty?", "Should be")
             val key = productModel.item_data
             val pos = items?.indexOfFirst {it.item_data == key}
             if (pos != null) {
