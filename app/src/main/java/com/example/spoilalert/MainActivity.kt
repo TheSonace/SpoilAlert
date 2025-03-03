@@ -187,7 +187,7 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
     @SuppressLint("SetTextI18n")
     private fun updateProductInfoDialog(item: String, value: String, barCode: String) {
         val columnName = item.replace(", ", "")
-        var newItem : String = ""
+        lateinit var newItem : String
         if (columnName == "ProductName") { newItem = getString(R.string.updateProductName)}
         if (columnName == "ProductBrand") { newItem = getString(R.string.updateProductBrand)}
 
@@ -223,6 +223,9 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
         }
         // create and show the alert dialog
         val dialog: AlertDialog = builder.create()
+        dialog.setOnDismissListener {
+            productQueries.set_nullcheck(barCode)
+        }
         dialog.show()
     }
 
@@ -270,9 +273,19 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
                     Log.e("Software version", "Software failed to update to Version: $versionNr")
                 }
             }
-            // DO NOT FORGET TO SET INITIAL TABLE GENERATION DB VERSION in DBInfo IF UPDATING. CURRENTLY SET TO VERSION 5
+        }
+        if (versionNr == "5") {
+            try {
+                Database.Schema.migrate(driver, oldVersion = 5, newVersion = 6)
+                versionNr = "6"
+                Log.d("Software version", "Software updated to Version: $versionNr")
+            } catch (_: RuntimeException) {
+                Log.e("Software version", "Software failed to update to Version: $versionNr")
+            }
+            // DO NOT FORGET TO SET INITIAL TABLE GENERATION DB VERSION in DBInfo IF UPDATING. CURRENTLY SET TO VERSION 6
             // DO NOT FORGET TO UPDATE SOFTWARE VERSION IN MIGRATION FILE
         }
+
         Log.d("GetAllProducts", productQueries.selectAll().executeAsList().toString())
         Log.d("GetAllDBInfo", dbinfoQueries.selectAll().executeAsList().toString())
     }

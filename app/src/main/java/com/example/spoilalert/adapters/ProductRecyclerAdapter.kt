@@ -71,6 +71,8 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?,
             binding.introButton1.visibility = View.INVISIBLE
         }
 
+        // ADD PRODINFOBUTTONBACKGROUND CODE HERE
+
         holder.tvName.text = item.name
         holder.tvDate.text = formatter.format(item.min_spoildate)
         itemAdapter = ItemAdapter(mContext, item.item_data)
@@ -97,6 +99,7 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?,
         holder.ivArrow.setOnClickListener { onItemClicked(item, holder) }
 
         holder.prodInfo.setOnClickListener {
+            productQueries.set_nullcheck(item.barCode)
             val record = productQueries.getRecordKey(item.barCode).executeAsList()[0]
             val img_loc = productQueries.getimg(record).executeAsList()[0]
             var myBitmap: Bitmap? = null

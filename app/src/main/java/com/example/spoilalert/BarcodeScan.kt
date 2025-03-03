@@ -68,6 +68,7 @@ class BarcodeScan : AppCompatActivity() {
     var cal = Calendar.getInstance()
 
 
+    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d("TAG", productQueries.selectAll().executeAsList().toString())
         super.onCreate(savedInstanceState)
@@ -123,7 +124,7 @@ class BarcodeScan : AppCompatActivity() {
             if (file != false) {
                 binding.flipperMedia.prodInfo.imageView.setImageBitmap(BitmapFactory.decodeFile(file.toString()))
                 binding.myViewFlipper.displayedChild = binding.myViewFlipper.indexOfChild(binding.flipperMedia.main2)
-                Toast.makeText(this, "Image Overwritten", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.updateImageSucceed), Toast.LENGTH_SHORT).show()
             } else {Log.i("SpoilAlert", "Failed to save image.")}
         }
 
@@ -178,7 +179,7 @@ class BarcodeScan : AppCompatActivity() {
         })
         barcodeDetector.setProcessor(object : Detector.Processor<Barcode>{
             override fun release() {
-                Toast.makeText(applicationContext, "Scanning has been stopped, returning to home screen.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(applicationContext, getString(R.string.stopScanReturnHome), Toast.LENGTH_SHORT).show()
             }
 
             @SuppressLint("SetTextI18n")
@@ -223,7 +224,7 @@ class BarcodeScan : AppCompatActivity() {
                                 binding.flipperMedia.prodInfo.tvProductBrand.text = localProduct.brand
                                 binding.flipperMedia.prodInfo.tvbarCode.text = latestbarcodescan
                                 runOnUiThread(Runnable { switchToPreview(viewFlipper) })
-                                checkForNull(localProduct, latestbarcodescan)
+//                                checkForNull(localProduct, latestbarcodescan)
                             } catch(_: NullPointerException) {}
                         }
                         else {
@@ -271,18 +272,23 @@ class BarcodeScan : AppCompatActivity() {
     private fun checkForNull(localProduct: Product_data, barCode: String) {
         if (localProduct.product == "null") {
             updateProductInfoDialog("ProductName", localProduct.product, barCode, "add")
-            checkForNull(localProduct, barCode)
         }
         else if (localProduct.brand == "null") {
             updateProductInfoDialog("ProductBrand", localProduct.brand, barCode, "add")
-            checkForNull(localProduct, barCode)
         }
-
+        else if (localProduct.image == "null") {
+            Toast.makeText(
+                applicationContext,
+                getString(R.string.addProductImage),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun updateProductInfoDialog(item: String, value: String, barCode: String, type: String) {
         val columnName = item.replace(", ", "")
-        var newItem : String = ""
+        lateinit var newItem : String
         if (type == "add") {
             if (columnName == "ProductName") { newItem = getString(R.string.addProductName)}
             if (columnName == "ProductBrand") { newItem = getString(R.string.addProductBrand)}
@@ -322,6 +328,10 @@ class BarcodeScan : AppCompatActivity() {
         }
         // create and show the alert dialog
         val dialog: AlertDialog = builder.create()
+        dialog.setOnDismissListener {
+            productQueries.set_nullcheck(barCode)
+            checkForNull(productQueries.getlocal(barCode).executeAsList()[0], barCode)
+        }
         dialog.show()
     }
 

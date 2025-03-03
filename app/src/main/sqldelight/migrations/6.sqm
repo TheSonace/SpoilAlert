@@ -1,0 +1,5 @@
+ALTER TABLE product_data ADD COLUMN null_check INTEGER NOT NULL DEFAULT 0;
+
+UPDATE product_data SET null_check = 0;
+
+UPDATE DBInfo SET user_version = 6;
