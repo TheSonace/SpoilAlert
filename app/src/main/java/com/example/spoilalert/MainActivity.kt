@@ -140,6 +140,9 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
 //    }
 
     private fun iniBc(){
+        val scans = dbinfoQueries.get_tokens().executeAsOne().toInt()
+        binding.mainTokenCounter.text = "$scans\ntokens\nremaining"
+
         val allitems = itemQueries.selectjson().executeAsList()
 //        Log.d("All Items query", itemQueries.selectAll().executeAsList().toString())
 //        Log.d("All Items json query", allitems.toString())
@@ -324,6 +327,8 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
 
     private fun returnToMain() {
         binding.myViewFlipper.displayedChild = binding.myViewFlipper.indexOfChild(binding.main)
+        val scans = dbinfoQueries.get_tokens().executeAsOne().toInt()
+        binding.mainTokenCounter.text = "$scans\ntokens\nremaining"
     }
 
     companion object {

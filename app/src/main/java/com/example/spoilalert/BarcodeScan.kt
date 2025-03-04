@@ -100,7 +100,7 @@ class BarcodeScan : AppCompatActivity() {
             when (x) {
                 0 -> Toast.makeText(
                     applicationContext,
-                    "No more tokens remaining, please watch an add to receive more",
+                    "Not enough tokens remaining, please watch an add to receive more",
                     Toast.LENGTH_SHORT).show()
                 1 -> openDatePicker()
             }
@@ -224,6 +224,7 @@ class BarcodeScan : AppCompatActivity() {
                                         myBitmap = loadImageFromWebOperations(localProduct.image)
                                         if (file.exists()) {
                                             productQueries.update_image(file.toString(), record)
+                                            productQueries.set_nullcheck(localProduct.barCode)
                                         }
                                     }
                                     if (file.exists()) {
@@ -293,6 +294,7 @@ class BarcodeScan : AppCompatActivity() {
                 Toast.LENGTH_SHORT
             ).show()
         }
+        productQueries.set_nullcheck(barCode)
     }
 
     @SuppressLint("SetTextI18n")
@@ -401,9 +403,11 @@ class BarcodeScan : AppCompatActivity() {
 //            Log.d("string of nutriments", nutriments.toString())
 //            Log.d("string of nutriments count", nutriments.count().toString())
 //        }
-            var x = 0
+            var x = 2
             scans = dbinfoQueries.get_tokens().executeAsOne().toInt()
-            if (status == "1" && scans > 0) {x = 1}
+            if (status == "1" && scans == 0) {x = 0}
+            else if (status == "1" && scans > 0) {x = 1}
+
             when (x) {
                 0 -> Toast.makeText(
                     applicationContext,
