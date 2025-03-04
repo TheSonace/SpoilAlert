@@ -49,26 +49,28 @@ var itemtobeAdded = 1
 
 class BarcodeScan : AppCompatActivity() {
     private val ktorclient = OpenFoodFactsKtorClient()
-    val database = Database(AndroidSqliteDriver(Database.Schema, this, "launch.db"))
+    private val database = Database(AndroidSqliteDriver(Database.Schema, this, "launch.db"))
     private val itemQueries = database.itemQueries
-    val productQueries = database.productQueries
+    private val productQueries = database.productQueries
     private val dbinfoQueries = database.dBInfoQueries
 
     private var cameraLauncher: ActivityResultLauncher<String>? = null
     private lateinit var cameraProvider: ProcessCameraProvider
 
-    val myFormat = "yyyyMMdd"
-    val sdf = SimpleDateFormat(myFormat, Locale.US)
+    private val myFormat = "yyyyMMdd"
+    private val sdf = SimpleDateFormat(myFormat, Locale.US)
 
     private lateinit var binding: ActivityBarcodeScanBinding
     private lateinit var barcodeDetector: BarcodeDetector
     private lateinit var cameraSource: CameraSource
 
-    var scandatetime = ""
+    private var scandatetime = ""
     var spoildate = ""
-    var cal = Calendar.getInstance()
+    private var cal: Calendar = Calendar.getInstance()
 
-    var scans: Int = 0
+    private var scans: Int = 0
+    private var autoScan: Int = 1
+    private var addingCustom: Int = 0
 
 
     @SuppressLint("SetTextI18n")
@@ -121,8 +123,9 @@ class BarcodeScan : AppCompatActivity() {
         }
 
         binding.button.setOnClickListener {
-            Toast.makeText(applicationContext, "BarCode can't be detected in DataBase. " +
-                    "Will need to manually add item.", Toast.LENGTH_SHORT).show()
+            autoScan = 0
+//            Toast.makeText(applicationContext, "BarCode can't be detected in DataBase. " +
+//                    "Will need to manually add item.", Toast.LENGTH_SHORT).show()
         }
 
         binding.flipperMedia.prodInfo.editImageButton.setOnClickListener{
@@ -196,57 +199,91 @@ class BarcodeScan : AppCompatActivity() {
 
             @SuppressLint("SetTextI18n")
             override fun receiveDetections(detections: Detector.Detections<Barcode>) {
-                if (activeScanBoolean == 0) {
-                    val barcodes = detections.detectedItems
-                    if(barcodes.size()!=0){
-                        val getBarcode = barcodes.valueAt(0).displayValue
-                        if(latestbarcodescan != getBarcode){
-                            latestbarcodescan = getBarcode
-//                            Log.e("barcode nr", latestbarcodescan)
-                            val viewFlipper = binding.myViewFlipper
-                            Thread.sleep(200)
-                            try {productQueries.localcheck(getBarcode).executeAsList()[0]}
-                            catch (_: IndexOutOfBoundsException) {
-//                                Log.e("Adding Data!!", latestbarcodescan)
-                                lifecycleScope.launch {
-                                    downloadProduct(getBarcode)}}
-                            try {
-                                val localProduct =
-                                    productQueries.getlocal(latestbarcodescan).executeAsList()[0]
-                                val record = localProduct.RecordKey
-                                val imgLoc = productQueries.getimg(record).executeAsList()[0]
-                                var myBitmap: Bitmap? = null
-                                if (imgLoc != "null") {
-                                    val file = File(File(this@BarcodeScan.filesDir, "Products"),
-                                        "$record.jpg")
-                                    if (!file.exists()) {
-                                        DownloadAndSaveImageTask(this@BarcodeScan, record, database).execute(imgLoc)
-                                        myBitmap = loadImageFromWebOperations(localProduct.image)
-                                        if (file.exists()) {
-                                            productQueries.update_image(file.toString(), record)
-                                            productQueries.set_nullcheck(localProduct.barCode)
-                                        }
-                                    }
-                                    if (file.exists()) {
-                                        myBitmap = BitmapFactory.decodeFile(file.toString())
-                                    }
-                                }
-                                binding.flipperMedia.prodInfo.imageView.setImageBitmap(myBitmap)
-                                binding.flipperMedia.prodInfo.tvProductName.text = localProduct.product + ", "
-                                binding.flipperMedia.prodInfo.tvProductBrand.text = localProduct.brand
-                                binding.flipperMedia.prodInfo.tvbarCode.text = latestbarcodescan
-                                runOnUiThread(Runnable { switchToPreview(viewFlipper) })
-                            } catch(_: NullPointerException) {}
-                        }
-                        else {
-                            latestbarcodescan = ""
-                            Thread.sleep(1000)
-                        }
-                    }
-                }
+                if (autoScan == 1) {getAutoScan(detections)}
+                else if (autoScan == 0) {getManualScan(detections)}
+
             }
         })
     }
+
+    private fun getManualScan(detections: Detector.Detections<Barcode>) {
+        autoScan = 1
+        val barcodes = detections.detectedItems
+        if (barcodes.size()!=0) {
+            val getBarcode = barcodes.valueAt(0).displayValue
+            Log.e("barcode detected", getBarcode)
+            // AlertDialog, show barcode and ask for check. Is correct / manually enter if wrong
+            // getBarCode == returned barcode
+            // check if getBarCode is in DB, if not then perform downloadProduct(getBarCode, "")
+            // addingCustom = 1
+            // runOnUiThread(Runnable { switchToPreview(binding.myViewFlipper, getBarCode) })
+        }
+        else if (barcodes.size()==0) {
+            Log.e("barcode detected", "none")
+            // Get all current custom items in DB.
+            // AlertDialog, "Custom product detected" , ask for name of Item, add predictive text
+            // return name of Item
+            // Check if Item is present in DB, get barCode
+            // if item is not present: getBarCode == "custom + 1 max RecordKey in ProductDB"
+            // perform downloadProduct(getBarCode, itemName)
+            // addingCustom = 1
+            // runOnUiThread(Runnable { switchToPreview(binding.myViewFlipper, getBarCode) })
+        }
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun getAutoScan(detections: Detector.Detections<Barcode>) {
+        if (activeScanBoolean == 0) {
+        val barcodes = detections.detectedItems
+        if(barcodes.size()!=0){
+            val getBarcode = barcodes.valueAt(0).displayValue
+//            Log.e("previous barcode nr", latestbarcodescan)
+            if(latestbarcodescan != getBarcode){
+                latestbarcodescan = getBarcode
+//                            Log.e("barcode nr", latestbarcodescan)
+                val viewFlipper = binding.myViewFlipper
+                Thread.sleep(200)
+                try {productQueries.localcheck(getBarcode).executeAsList()[0]}
+                catch (_: IndexOutOfBoundsException) {
+//                                Log.e("Adding Data!!", latestbarcodescan)
+                    lifecycleScope.launch {
+                        downloadProduct(latestbarcodescan, "")}}
+                try {
+                    val localProduct =
+                        productQueries.getlocal(latestbarcodescan).executeAsList()[0]
+                    if (localProduct.status == "1") {
+                        val record = localProduct.RecordKey
+                        val imgLoc = productQueries.getimg(record).executeAsList()[0]
+                        var myBitmap: Bitmap? = null
+                        if (imgLoc != "null") {
+                            val file = File(File(this@BarcodeScan.filesDir, "Products"),
+                                "$record.jpg")
+                            if (!file.exists()) {
+                                DownloadAndSaveImageTask(this@BarcodeScan, record, database).execute(imgLoc)
+                                myBitmap = loadImageFromWebOperations(localProduct.image)
+                                if (file.exists()) {
+                                    productQueries.update_image(file.toString(), record)
+                                    productQueries.set_nullcheck(localProduct.barCode)
+                                }
+                            }
+                            if (file.exists()) {
+                                myBitmap = BitmapFactory.decodeFile(file.toString())
+                            }
+                        }
+                        binding.flipperMedia.prodInfo.imageView.setImageBitmap(myBitmap)
+                        binding.flipperMedia.prodInfo.tvProductName.text = localProduct.product + ", "
+                        binding.flipperMedia.prodInfo.tvProductBrand.text = localProduct.brand
+                        binding.flipperMedia.prodInfo.tvbarCode.text = latestbarcodescan
+                        runOnUiThread{ switchToPreview(viewFlipper, latestbarcodescan) }
+                    }
+                } catch(_: NullPointerException) {} //catch(_:IndexOutOfBoundsException) {}
+            }
+            else {
+                latestbarcodescan = ""
+                Thread.sleep(1000)
+            }
+        }
+    }}
 
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
@@ -295,6 +332,10 @@ class BarcodeScan : AppCompatActivity() {
             ).show()
         }
         productQueries.set_nullcheck(barCode)
+        if (addingCustom == 1) {
+            dbinfoQueries.update_tokens()
+            addingCustom = 0
+        }
     }
 
     @SuppressLint("SetTextI18n")
@@ -369,11 +410,12 @@ class BarcodeScan : AppCompatActivity() {
         //super.onBackPressed();
     }
 
-    fun switchToPreview(viewFlipper: ViewFlipper) {
+    fun switchToPreview(viewFlipper: ViewFlipper, barCode: String) {
         binding.flipperMedia.AddItems.setText("1")
         activeScanBoolean = 1
         itemtobeAdded = 1
         viewFlipper.displayedChild = viewFlipper.indexOfChild(binding.flipperMedia.main2)
+        checkForNull(productQueries.getlocal(barCode).executeAsList()[0], barCode)
     }
 
     @SuppressLint("MissingPermission")
@@ -389,11 +431,15 @@ class BarcodeScan : AppCompatActivity() {
     }
 
     operator fun get(index: Int) {}
-    suspend fun downloadProduct(getbarcode: String) {
-        try {
+    private suspend fun downloadProduct(getbarcode: String, custom: String) {
+//        try {
             val json = ktorclient.fetchProductByCode(getbarcode)
-            val brand = json.product?.brands.toString()
-            val product = json.product?.productName.toString()
+            var brand = json.product?.brands.toString()
+            var product = json.product?.productName.toString()
+            if (custom != "") {
+                brand = "custom"
+                product = custom
+            }
             val status = json.status.toString()
             val productUrl = ktorclient.createProductUrl(getbarcode).toString()
 //        val nutriments = json.product?.nutriments?.other
@@ -407,6 +453,8 @@ class BarcodeScan : AppCompatActivity() {
             scans = dbinfoQueries.get_tokens().executeAsOne().toInt()
             if (status == "1" && scans == 0) {x = 0}
             else if (status == "1" && scans > 0) {x = 1}
+
+        Log.e("print x", x.toString())
 
             when (x) {
                 0 -> Toast.makeText(
@@ -433,18 +481,33 @@ class BarcodeScan : AppCompatActivity() {
                     applicationContext,
                         "$scans tokens remaining, ",
                     Toast.LENGTH_SHORT).show()}
+                    2 -> {productQueries.insert_new(
+                        getbarcode,
+                        getbarcode,
+                        brand,
+                        brand,
+                        product,
+                        product,
+                        status,
+                        productUrl,
+                        productUrl,
+                        image,
+                        image,
+                        sdf.format(cal.time)
+                    )}
             }
-        } catch (_: NullPointerException) {
-            Toast.makeText(
-                applicationContext,
-                "Failed to scan barcode. Please send number to developer.",
-                Toast.LENGTH_SHORT
-            ).show()
-        }
+//        } catch (_: NullPointerException) {
+//            Toast.makeText(
+//                applicationContext,
+//                "Failed to scan barcode. Please send number to developer.",
+//                Toast.LENGTH_SHORT
+//            ).show()
+//        }
     }
 
     @SuppressLint("ResourceType")
     private fun openDatePicker() {
+        addingCustom = 0
 //        DatePickerDialog(this@BarcodeScan, R.style.CustomDatePickerDialogTheme, dateSetListener,
 //            cal.get(Calendar.YEAR),
 //            cal.get(Calendar.MONTH),
