@@ -6,7 +6,6 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.text.format.Formatter
 import android.util.Log
 import android.view.View
 import android.widget.EditText
@@ -29,8 +28,6 @@ import com.example.spoilalert.enginebuilder.OpenFoodFactsKtorClient
 import com.example.spoilalert.models.ProductModel
 import com.example.spoilalert.utils.JsonConverter
 import com.example.spoilalert.utils.UpdateAndSaveImageTask
-import java.io.File
-import java.io.FileOutputStream
 
 
 class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.OnGestureListener {
@@ -50,6 +47,7 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
     override fun onCreate(savedInstanceState: Bundle?) {
 //        itemQueries.deleteAll()
 //        productQueries.deleteAll()
+        logItemsandProducts()
         dbUpdateManager()
         var scans: Int
 
@@ -122,6 +120,7 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
         binding.mainWatchAdd.setOnClickListener {
             dbinfoQueries.watched_add()
             scans = dbinfoQueries.get_tokens().executeAsOne().toInt()
+            binding.mainTokenCounter.text = "$scans\ntokens\nremaining"
             Toast.makeText(applicationContext, "Watched add! 10 tokens Added. $scans tokens remaining", Toast.LENGTH_SHORT).show()
         }
 
@@ -138,15 +137,54 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
 //        event.let { gestureDetector.onTouchEvent(it) }
 //        return super.dispatchTouchEvent(event)
 //    }
+    private fun logItemsandProducts() {
+        val allitems = itemQueries.selectjson().executeAsList()
+        val sb: String = allitems.toString()
+        if (sb.length > 4000) {
+            Log.v("All Items json query", "sb.length = " + sb.length)
+            val chunkCount: Int = sb.length / 4000 // integer division
+            for (i in 0..chunkCount) {
+                val max = 4000 * (i + 1)
+                if (max >= sb.length) {
+                    Log.v(
+                        "All Items json query",
+                        "chunk " + i + " of " + chunkCount + ":" + sb.substring(4000 * i)
+                    )
+                } else {
+                    Log.v(
+                        "All Items json query",
+                        "chunk " + i + " of " + chunkCount + ":" + sb.substring(4000 * i, max)
+                    )
+                }
+            }
+        }
+
+
+        val allproducts = productQueries.selectAll().executeAsList()
+        val bs: String = allproducts.toString()
+        if (bs.length > 4000) {
+            Log.v("All products query", "sb.length = " + bs.length)
+            val chunkCount: Int = bs.length / 4000 // integer division
+            for (i in 0..chunkCount) {
+                val max = 4000 * (i + 1)
+                if (max >= bs.length) {
+                    Log.v("All products query", "chunk " + i + " of " + chunkCount + ":" + bs.substring(4000 * i))
+                } else {
+                    Log.v(
+                        "All products query",
+                        "chunk " + i + " of " + chunkCount + ":" + bs.substring(4000 * i, max)
+                    )
+                }
+            }
+        }
+    Log.d("GetAllDBInfo", dbinfoQueries.selectAll().executeAsList().toString())
+    }
+
 
     private fun iniBc(){
         val scans = dbinfoQueries.get_tokens().executeAsOne().toInt()
         binding.mainTokenCounter.text = "$scans\ntokens\nremaining"
-
         val allitems = itemQueries.selectjson().executeAsList()
-//        Log.d("All Items query", itemQueries.selectAll().executeAsList().toString())
-//        Log.d("All Items json query", allitems.toString())
-        Log.d("All Items json", JsonConverter(this, allitems).getItemData().toString())
         mRecyclerView = binding.recyclerView
         val adapter = ProductAdapter(this, JsonConverter(this, allitems).getItemData(), binding)
         mRecyclerView!!.adapter = adapter
@@ -301,9 +339,6 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
             // DO NOT FORGET TO SET INITIAL TABLE GENERATION DB VERSION in DBInfo IF UPDATING. CURRENTLY SET TO VERSION 7
             // DO NOT FORGET TO UPDATE SOFTWARE VERSION IN MIGRATION FILE
         }
-
-        Log.d("GetAllProducts", productQueries.selectAll().executeAsList().toString())
-        Log.d("GetAllDBInfo", dbinfoQueries.selectAll().executeAsList().toString())
     }
 
     override fun onResume() {
@@ -338,6 +373,8 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
             var img = bitmapimg
             if (img == null) {
                 img = loadImageFromWebOperations(productpreviewlist)
+                if (img == null) {
+                    binding.flipperMedia.editImageButton.setBackgroundResource(R.drawable.circle_border_red)}
             }
             binding.flipperMedia.imageView.setImageBitmap(img)
             binding.flipperMedia.tvProductName.text = item.product + ", "

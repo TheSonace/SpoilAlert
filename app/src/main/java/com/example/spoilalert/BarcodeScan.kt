@@ -8,6 +8,8 @@ import android.os.Bundle
 import android.util.Log
 import android.view.SurfaceHolder
 import android.view.View
+import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
 import android.widget.DatePicker
 import android.widget.EditText
 import android.widget.ImageView
@@ -124,8 +126,6 @@ class BarcodeScan : AppCompatActivity() {
 
         binding.button.setOnClickListener {
             autoScan = 0
-//            Toast.makeText(applicationContext, "BarCode can't be detected in DataBase. " +
-//                    "Will need to manually add item.", Toast.LENGTH_SHORT).show()
         }
 
         binding.flipperMedia.prodInfo.editImageButton.setOnClickListener{
@@ -221,13 +221,57 @@ class BarcodeScan : AppCompatActivity() {
         else if (barcodes.size()==0) {
             Log.e("barcode detected", "none")
             // Get all current custom items in DB.
-            // AlertDialog, "Custom product detected" , ask for name of Item, add predictive text
-            // return name of Item
-            // Check if Item is present in DB, get barCode
-            // if item is not present: getBarCode == "custom + 1 max RecordKey in ProductDB"
-            // perform downloadProduct(getBarCode, itemName)
-            // addingCustom = 1
-            // runOnUiThread(Runnable { switchToPreview(binding.myViewFlipper, getBarCode) })
+            var customlist = productQueries.get_all_custom_products().executeAsList()
+            if (customlist.isEmpty()) {
+                customlist = listOf("")
+            }
+            Log.e("barcode detected, custom list:", customlist.toString())
+            val adapter: ArrayAdapter<String> = ArrayAdapter(this, android.R.layout.simple_list_item_1, customlist)
+            val customLayout: View = layoutInflater.inflate(R.layout.dialog_add_custom_product, null)
+            val autoCompleteTextView: AutoCompleteTextView = customLayout.findViewById(R.id.autoTextView)
+            runOnUiThread(Runnable {
+                autoCompleteTextView.setAdapter(adapter)
+                addCustomProduct(customLayout, autoCompleteTextView)
+            })
+
+        }
+    }
+
+    private fun addCustomProduct(customLayout: View, autoCompleteTextView: AutoCompleteTextView) {
+        // create an alert builder
+        val builder: AlertDialog.Builder = AlertDialog.Builder(this)
+        builder.setTitle(getString(R.string.customProductDetected))
+        // set the custom layout
+        builder.setView(customLayout)
+        // add a button
+        builder.setPositiveButton(
+            "Add Product"
+        ) { _, _ -> // do something with response
+            sendDialogDataToActivity(autoCompleteTextView.text.toString());
+        }
+        // create and show the alert dialog
+        val dialog: AlertDialog = builder.create()
+        dialog.show()
+    }
+
+    private fun sendDialogDataToActivity(addedItem: String) {
+        Log.e("detected item", addedItem)
+        lateinit var newProductRecordkey: String
+        try {
+            latestbarcodescan = productQueries.get_custom_product_barcode(addedItem).executeAsList()[0]
+            val localProduct =
+                productQueries.getlocal(latestbarcodescan).executeAsList()[0]
+            binding.flipperMedia.prodInfo.tvProductName.text = localProduct.product + ", "
+            binding.flipperMedia.prodInfo.tvProductBrand.text = localProduct.brand
+            binding.flipperMedia.prodInfo.tvbarCode.text = latestbarcodescan
+            runOnUiThread(Runnable { switchToPreview(binding.myViewFlipper, latestbarcodescan) })
+        }
+        catch (_: IndexOutOfBoundsException) {
+            newProductRecordkey = "custom_${productQueries.get_max_recordkey().executeAsOne().toInt() + 1}"
+            addingCustom = 1
+            lifecycleScope.launch {
+                downloadProduct(newProductRecordkey, addedItem)}
+            Thread.sleep(1000)
         }
     }
 
@@ -334,6 +378,11 @@ class BarcodeScan : AppCompatActivity() {
         productQueries.set_nullcheck(barCode)
         if (addingCustom == 1) {
             dbinfoQueries.update_tokens()
+            scans = dbinfoQueries.get_tokens().executeAsOne().toInt()
+            Toast.makeText(
+                applicationContext,"Product has been saved " +
+                        "\n$scans tokens remaining, ",
+                Toast.LENGTH_SHORT).show()
             addingCustom = 0
         }
     }
@@ -431,37 +480,66 @@ class BarcodeScan : AppCompatActivity() {
     }
 
     operator fun get(index: Int) {}
-    private suspend fun downloadProduct(getbarcode: String, custom: String) {
+    private suspend fun downloadProduct(getbarcode: String, customProductName: String) {
 //        try {
-            val json = ktorclient.fetchProductByCode(getbarcode)
-            var brand = json.product?.brands.toString()
-            var product = json.product?.productName.toString()
-            if (custom != "") {
-                brand = "custom"
-                product = custom
-            }
-            val status = json.status.toString()
-            val productUrl = ktorclient.createProductUrl(getbarcode).toString()
+        val json = ktorclient.fetchProductByCode(getbarcode)
+        var brand = json.product?.brands.toString()
+        var product = json.product?.productName.toString()
+        var status = json.status.toString()
+        val productUrl = ktorclient.createProductUrl(getbarcode).toString()
 //        val nutriments = json.product?.nutriments?.other
-            val image = json.product?.imageFrontUrl.toString()
+        var image = json.product?.imageFrontUrl.toString()
+        if (customProductName != "") {
+            brand = "custom"
+            product = customProductName
+            status = "0"
+            image = "null"
+        }
+
+
+        Log.e("Newbarcode", json.toString())
+        Log.e("Newbarcode", brand)
+        Log.e("Newbarcode", product)
+        Log.e("Newbarcode", status)
+        Log.e("Newbarcode", image)
 
 //        if (nutriments != null) {
 //            Log.d("string of nutriments", nutriments.toString())
 //            Log.d("string of nutriments count", nutriments.count().toString())
 //        }
-            var x = 2
-            scans = dbinfoQueries.get_tokens().executeAsOne().toInt()
-            if (status == "1" && scans == 0) {x = 0}
-            else if (status == "1" && scans > 0) {x = 1}
+        var x = 2
+        scans = dbinfoQueries.get_tokens().executeAsOne().toInt()
+        if (status == "1" && scans == 0) {x = 0}
+        else if (status == "1" && scans > 0) {x = 1}
 
         Log.e("print x", x.toString())
 
-            when (x) {
-                0 -> Toast.makeText(
-                    applicationContext,
-                    "No more tokens remaining, please watch an add to receive more",
-                    Toast.LENGTH_SHORT).show()
-                1 -> {productQueries.insert_new(
+        when (x) {
+            0 -> Toast.makeText(
+                applicationContext,
+                "No more tokens remaining, please watch an add to receive more",
+                Toast.LENGTH_SHORT).show()
+            1 -> {productQueries.insert_new(
+                getbarcode,
+                getbarcode,
+                brand,
+                brand,
+                product,
+                product,
+                status,
+                productUrl,
+                productUrl,
+                image,
+                image,
+                sdf.format(cal.time)
+                )
+                dbinfoQueries.update_tokens()
+                scans = dbinfoQueries.get_tokens().executeAsOne().toInt()
+                Toast.makeText(
+                applicationContext,"Product has been saved " +
+                            "\n$scans tokens remaining, ",
+                Toast.LENGTH_SHORT).show()}
+                2 -> {productQueries.insert_new(
                     getbarcode,
                     getbarcode,
                     brand,
@@ -474,28 +552,9 @@ class BarcodeScan : AppCompatActivity() {
                     image,
                     image,
                     sdf.format(cal.time)
-                    )
-                    dbinfoQueries.update_tokens()
-                    scans = dbinfoQueries.get_tokens().executeAsOne().toInt()
-                    Toast.makeText(
-                    applicationContext,
-                        "$scans tokens remaining, ",
-                    Toast.LENGTH_SHORT).show()}
-                    2 -> {productQueries.insert_new(
-                        getbarcode,
-                        getbarcode,
-                        brand,
-                        brand,
-                        product,
-                        product,
-                        status,
-                        productUrl,
-                        productUrl,
-                        image,
-                        image,
-                        sdf.format(cal.time)
-                    )}
-            }
+                )
+                    sendDialogDataToActivity(product)}
+        }
 //        } catch (_: NullPointerException) {
 //            Toast.makeText(
 //                applicationContext,

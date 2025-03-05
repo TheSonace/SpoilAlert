@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS product_data (
 );
 
 selectAll:
-SELECT RecordKey, product, product_url, null_check, status
+SELECT RecordKey, product, product_url, null_check, status, image
 FROM product_data;
 
 deleteAll:
@@ -57,8 +57,22 @@ update_image:
 UPDATE product_data SET image = ? WHERE RecordKey = ?;
 
 set_nullcheck:
-UPDATE product_data SET null_check = 1 WHERE barCode =? AND brand != "null" AND product != "null" AND image != "null";
+UPDATE product_data SET null_check = 1 WHERE barCode =? AND brand != 'null' AND product != 'null' AND image != 'null';
 
 get_nullcheck:
 SELECT null_check
 FROM product_data WHERE barCode = :barcode;
+
+get_all_custom_products:
+SELECT DISTINCT product
+FROM product_data WHERE barCode LIKE '%custom%';
+
+get_custom_product_barcode:
+SELECT barCode
+FROM product_data WHERE product = :productName;
+
+get_max_recordkey:
+SELECT RecordKey
+FROM product_data
+ORDER BY RecordKey DESC
+LIMIT 1;

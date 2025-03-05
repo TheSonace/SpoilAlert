@@ -59,6 +59,6 @@ selectjson:
 SELECT item_data.RecordKey, item_data.barCode, (product_data.product || ', ' || product_data.brand) AS Item, product_data.brand, product_data.product, spoildate, location
 FROM item_data
 LEFT JOIN product_data ON item_data.barCode = product_data.barCode
-WHERE item_data.removedatetime IS NULL
+WHERE item_data.removedatetime IS NULL AND item_data.barCode != ''
 GROUP BY item_data.RecordKey
 ORDER BY item_data.spoildate, item_data.barCode;

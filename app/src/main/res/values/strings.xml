@@ -21,4 +21,6 @@
     <string name="updateProductBrand">Update Product Brand:</string>
     <string name="updateImageSucceed">Image Updated</string>
     <string name="stopScanReturnHome">Scanning has been stopped, returning to home screen.</string>
+    <string name="customProductDetected">Custom Product Detected</string>
+    <string name="add_custom_product">Name:</string>
 </resources>
