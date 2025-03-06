@@ -35,6 +35,7 @@ class UpdateAndSaveImageTask(context: Context, filename: Long, database: Databas
             )
             val canvas = Canvas(newBitmap)
             canvas.drawColor(Color.WHITE)
+            Thread.sleep(200)
             canvas.drawBitmap(bitMap!!, Matrix(), null)
             // Quality 95 results in images of around 200Kb, comparable to OpenFoods.
             // Direct export to PNG is dependent on camera (Emulator is 1500Kb

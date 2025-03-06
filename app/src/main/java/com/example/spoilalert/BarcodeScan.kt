@@ -36,6 +36,7 @@ import com.google.android.gms.vision.CameraSource
 import com.google.android.gms.vision.Detector
 import com.google.android.gms.vision.barcode.Barcode
 import com.google.android.gms.vision.barcode.BarcodeDetector
+import com.typesafe.config.ConfigException.Null
 import kotlinx.coroutines.launch
 import java.io.ByteArrayInputStream
 import java.io.File
@@ -142,6 +143,7 @@ class BarcodeScan : AppCompatActivity() {
             val file = UpdateAndSaveImageTask(this, fileName, database, bitmap).saveImage()
             if (file != false) {
                 binding.flipperMedia.prodInfo.imageView.setImageBitmap(BitmapFactory.decodeFile(file.toString()))
+                binding.flipperMedia.prodInfo.editImageButton.setBackgroundResource(0)
                 binding.myViewFlipper.displayedChild = binding.myViewFlipper.indexOfChild(binding.flipperMedia.main2)
                 Toast.makeText(this, getString(R.string.updateImageSucceed), Toast.LENGTH_SHORT).show()
             } else {Log.i("SpoilAlert", "Failed to save image.")}
@@ -309,6 +311,7 @@ class BarcodeScan : AppCompatActivity() {
             latestbarcodescan = barCode
             val localProduct =
                 productQueries.getlocal(latestbarcodescan).executeAsList()[0]
+            productQueries.update_status(localProduct.RecordKey)
             val imgLoc = localProduct.image
             if (imgLoc != "null") {
                 val file = File(File(this@BarcodeScan.filesDir, "Products"),
@@ -325,8 +328,9 @@ class BarcodeScan : AppCompatActivity() {
         }
         catch (_: IndexOutOfBoundsException) {
             addingCustom = 1
+            Log.e("download?", "trying")
             lifecycleScope.launch {
-                downloadProduct(barCode, "")}
+                downloadProduct(barCode, "addBarcode")}
             Thread.sleep(1000)
         }
     }
@@ -370,7 +374,9 @@ class BarcodeScan : AppCompatActivity() {
             runOnUiThread(Runnable { switchToPreview(binding.myViewFlipper, latestbarcodescan) })
         }
         catch (_: IndexOutOfBoundsException) {
-            newProductRecordkey = "custom_${productQueries.get_max_recordkey().executeAsOne().toInt() + 1}"
+            try {
+            newProductRecordkey = "custom_${productQueries.get_max_recordkey().executeAsOne().toInt() + 1}"}
+            catch (_: NullPointerException) {newProductRecordkey = "999999999"}
             addingCustom = 1
             lifecycleScope.launch {
                 downloadProduct(newProductRecordkey, addedItem)}
@@ -384,7 +390,7 @@ class BarcodeScan : AppCompatActivity() {
         val barcodes = detections.detectedItems
         if(barcodes.size()!=0){
             val getBarcode = barcodes.valueAt(0).displayValue
-//            Log.e("previous barcode nr", latestbarcodescan)
+            Log.e("previous barcode nr", latestbarcodescan)
             if(latestbarcodescan != getBarcode){
                 latestbarcodescan = getBarcode
 //                            Log.e("barcode nr", latestbarcodescan)
@@ -587,6 +593,7 @@ class BarcodeScan : AppCompatActivity() {
     operator fun get(index: Int) {}
     private suspend fun downloadProduct(getbarcode: String, customProductName: String) {
 //        try {
+        var y = 0
         val json = ktorclient.fetchProductByCode(getbarcode)
         var brand = json.product?.brands.toString()
         var product = json.product?.productName.toString()
@@ -595,19 +602,26 @@ class BarcodeScan : AppCompatActivity() {
 //        val nutriments = json.product?.nutriments?.other
         var image = json.product?.imageFrontUrl.toString()
         if (customProductName != "") {
-            brand = "custom"
-            product = customProductName
-            status = "0"
-            image = "null"
-            Log.e("bitmap?", bitmap.toString())
-            val file = UpdateAndSaveImageTask(this, getbarcode
-                .replace("custom_", "").toLong(), database, bitmap).saveImage()
-            if (file != false) {
-                image = file.toString()
-            } else {Log.i("SpoilAlert", "Failed to save image.")}
+            if (customProductName != "addBarcode") {
+                y = 1
+                brand = "custom"
+                product = customProductName
+                status = "0"
+                image = "null"
+                Log.e("bitmap?", bitmap.toString())
+                val file = UpdateAndSaveImageTask(this, getbarcode
+                    .replace("custom_", "").toLong(), database, bitmap).saveImage()
+                Log.e("asve image", "yers?")
+                if (file != false) {
+                    image = file.toString()
+                }
+                else {Log.i("SpoilAlert", "Failed to save image.")}
+        }}
+        if (customProductName == "addBarcode") {
+            status = "1"
         }
 
-
+        Log.e("Newbarcode", customProductName)
         Log.e("Newbarcode", json.toString())
         Log.e("Newbarcode", brand)
         Log.e("Newbarcode", product)
@@ -618,10 +632,10 @@ class BarcodeScan : AppCompatActivity() {
 //            Log.d("string of nutriments", nutriments.toString())
 //            Log.d("string of nutriments count", nutriments.count().toString())
 //        }
-        var x = 2
+        var x = 1
         scans = dbinfoQueries.get_tokens().executeAsOne().toInt()
         if (status == "1" && scans == 0) {x = 0}
-        else if (status == "1" && scans > 0) {x = 1}
+        else if (status == "1" && scans > 0) {y = 2}
 
         Log.e("print x", x.toString())
 
@@ -644,27 +658,17 @@ class BarcodeScan : AppCompatActivity() {
                 image,
                 sdf.format(cal.time)
                 )
-                dbinfoQueries.update_tokens()
-                scans = dbinfoQueries.get_tokens().executeAsOne().toInt()
-                Toast.makeText(
-                applicationContext,"Product has been saved " +
-                            "\n$scans tokens remaining, ",
-                Toast.LENGTH_SHORT).show()}
-                2 -> {productQueries.insert_new(
-                    getbarcode,
-                    getbarcode,
-                    brand,
-                    brand,
-                    product,
-                    product,
-                    status,
-                    productUrl,
-                    productUrl,
-                    image,
-                    image,
-                    sdf.format(cal.time)
-                )
+                if (y == 1){
                     sendCustomProductToActivity(product)}
+                else if (y == 2){
+                    dbinfoQueries.update_tokens()
+                    scans = dbinfoQueries.get_tokens().executeAsOne().toInt()
+                    Toast.makeText(
+                    applicationContext,"Product has been saved " +
+                                "\n$scans tokens remaining, ",
+                    Toast.LENGTH_SHORT).show()
+                    }
+                }
         }
 //        } catch (_: NullPointerException) {
 //            Toast.makeText(

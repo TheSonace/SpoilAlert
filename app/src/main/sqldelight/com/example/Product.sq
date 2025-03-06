@@ -76,3 +76,7 @@ SELECT RecordKey
 FROM product_data
 ORDER BY RecordKey DESC
 LIMIT 1;
+
+update_status:
+UPDATE product_data SET status = '1'
+WHERE RecordKey = :recordkey;

@@ -158,6 +158,7 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
                 }
             }
         }
+        else {Log.v("All items query", sb)}
 
 
         val allproducts = productQueries.selectAll().executeAsList()
@@ -177,6 +178,7 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
                 }
             }
         }
+    else {Log.v("All products query", bs)}
     Log.d("GetAllDBInfo", dbinfoQueries.selectAll().executeAsList().toString())
     }
 
