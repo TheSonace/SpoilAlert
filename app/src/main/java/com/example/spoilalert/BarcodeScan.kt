@@ -219,6 +219,10 @@ class BarcodeScan : AppCompatActivity() {
         if (barcodes.size()!=0) {
             val getBarcode = barcodes.valueAt(0).displayValue
             Log.e("barcode detected", getBarcode)
+            val customLayout: View = layoutInflater.inflate(R.layout.dialog_update_product_info, null)
+            runOnUiThread(Runnable {
+                addCustomBarcode(customLayout, getBarcode)
+            })
             // AlertDialog, show barcode and ask for check. Is correct / manually enter if wrong
             // getBarCode == returned barcode
             // check if getBarCode is in DB, if not then perform downloadProduct(getBarCode, "")
@@ -232,17 +236,27 @@ class BarcodeScan : AppCompatActivity() {
                 val exifInterface = ExifInterface(ByteArrayInputStream(ba))
                 val orientation =
                     exifInterface.getAttributeInt(ExifInterface.TAG_ORIENTATION, 1)
-                var rotationDegrees = 0
+                val matrix = Matrix()
                 when (orientation) {
-                    ExifInterface.ORIENTATION_ROTATE_90 -> rotationDegrees = 90
-                    ExifInterface.ORIENTATION_ROTATE_180 -> rotationDegrees = 180
-                    ExifInterface.ORIENTATION_ROTATE_270 -> rotationDegrees = 270
+                    2 -> matrix.setScale(-1f, 1f)
+                    3 -> matrix.setRotate(180f)
+                    4 -> {
+                        matrix.setRotate(180f)
+                        matrix.postScale(-1f, 1f)
+                    }
+                    5 -> {
+                        matrix.setRotate(90f)
+                        matrix.postScale(-1f, 1f)
+                    }
+                    6 -> matrix.setRotate(90f)
+                    7 -> {
+                        matrix.setRotate(-90f)
+                        matrix.postScale(-1f, 1f)
+                    }
+                    8 -> matrix.setRotate(-90f)
                 }
 
-                Log.e("rotation", rotationDegrees.toString())
                 val tempBitmap = BitmapFactory.decodeByteArray(ba, 0, ba!!.size)
-                val matrix = Matrix()
-                matrix.postRotate(rotationDegrees.toFloat())
                 bitmap = Bitmap.createBitmap(
                     tempBitmap,
                     0,
@@ -270,6 +284,53 @@ class BarcodeScan : AppCompatActivity() {
         }
     }
 
+    private fun addCustomBarcode(customLayout: View, getBarcode: String) {
+        // create an alert builder
+        val builder: AlertDialog.Builder = AlertDialog.Builder(this)
+        builder.setTitle(getString(R.string.customBarcodeDetected))
+        val editText: TextView = customLayout.findViewById<EditText>(R.id.editText)
+        editText.text = getBarcode
+        // set the custom layout
+        builder.setView(customLayout)
+        // add a button
+        builder.setPositiveButton(
+            "Confirm"
+        ) { _, _ -> // do something with response
+            sendCustomBarcodeToActivity(editText.text.toString())
+        }
+        // create and show the alert dialog
+        val dialog: AlertDialog = builder.create()
+        dialog.show()
+    }
+
+    private fun sendCustomBarcodeToActivity(barCode: String) {
+        Log.e("detected item", barCode)
+        try {
+            latestbarcodescan = barCode
+            val localProduct =
+                productQueries.getlocal(latestbarcodescan).executeAsList()[0]
+            val imgLoc = localProduct.image
+            if (imgLoc != "null") {
+                val file = File(File(this@BarcodeScan.filesDir, "Products"),
+                    "${localProduct.RecordKey}.jpg")
+                if (file.exists()) {
+                    val myBitmap = BitmapFactory.decodeFile(file.toString())
+                    binding.flipperMedia.prodInfo.imageView.setImageBitmap(myBitmap)
+                }
+            }
+            binding.flipperMedia.prodInfo.tvProductName.text = localProduct.product + ", "
+            binding.flipperMedia.prodInfo.tvProductBrand.text = localProduct.brand
+            binding.flipperMedia.prodInfo.tvbarCode.text = latestbarcodescan
+            runOnUiThread(Runnable { switchToPreview(binding.myViewFlipper, latestbarcodescan) })
+        }
+        catch (_: IndexOutOfBoundsException) {
+            addingCustom = 1
+            lifecycleScope.launch {
+                downloadProduct(barCode, "")}
+            Thread.sleep(1000)
+        }
+    }
+
     private fun addCustomProduct(customLayout: View, autoCompleteTextView: AutoCompleteTextView) {
         // create an alert builder
         val builder: AlertDialog.Builder = AlertDialog.Builder(this)
@@ -280,14 +341,14 @@ class BarcodeScan : AppCompatActivity() {
         builder.setPositiveButton(
             "Add Product"
         ) { _, _ -> // do something with response
-            sendDialogDataToActivity(autoCompleteTextView.text.toString());
+            sendCustomProductToActivity(autoCompleteTextView.text.toString());
         }
         // create and show the alert dialog
         val dialog: AlertDialog = builder.create()
         dialog.show()
     }
 
-    private fun sendDialogDataToActivity(addedItem: String) {
+    private fun sendCustomProductToActivity(addedItem: String) {
         Log.e("detected item", addedItem)
         lateinit var newProductRecordkey: String
         try {
@@ -411,6 +472,7 @@ class BarcodeScan : AppCompatActivity() {
             updateProductInfoDialog("ProductBrand", localProduct.brand, barCode, "add")
         }
         else if (localProduct.image == "null") {
+            binding.flipperMedia.prodInfo.editImageButton.setBackgroundResource(R.drawable.circle_border_red)
             Toast.makeText(
                 applicationContext,
                 getString(R.string.addProductImage),
@@ -506,6 +568,7 @@ class BarcodeScan : AppCompatActivity() {
         activeScanBoolean = 1
         itemtobeAdded = 1
         viewFlipper.displayedChild = viewFlipper.indexOfChild(binding.flipperMedia.main2)
+        binding.flipperMedia.prodInfo.editImageButton.setBackgroundResource(0)
         checkForNull(productQueries.getlocal(barCode).executeAsList()[0], barCode)
     }
 
@@ -601,7 +664,7 @@ class BarcodeScan : AppCompatActivity() {
                     image,
                     sdf.format(cal.time)
                 )
-                    sendDialogDataToActivity(product)}
+                    sendCustomProductToActivity(product)}
         }
 //        } catch (_: NullPointerException) {
 //            Toast.makeText(

@@ -370,6 +370,7 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
         @SuppressLint("SetTextI18n")
         fun openPreview(productpreviewlist: String, item: ProductModel, binding: ActivityMainBinding, bitmapimg: Bitmap?) {
             val viewFlipper = binding.myViewFlipper
+            binding.flipperMedia.editImageButton.setBackgroundResource(0)
             var img = bitmapimg
             if (img == null) {
                 img = loadImageFromWebOperations(productpreviewlist)
