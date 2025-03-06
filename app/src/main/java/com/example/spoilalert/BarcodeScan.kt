@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
+import android.media.ExifInterface
 import android.os.Bundle
 import android.util.Log
 import android.view.SurfaceHolder
@@ -35,6 +37,7 @@ import com.google.android.gms.vision.Detector
 import com.google.android.gms.vision.barcode.Barcode
 import com.google.android.gms.vision.barcode.BarcodeDetector
 import kotlinx.coroutines.launch
+import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.IOException
 import java.net.HttpURLConnection
@@ -73,6 +76,7 @@ class BarcodeScan : AppCompatActivity() {
     private var scans: Int = 0
     private var autoScan: Int = 1
     private var addingCustom: Int = 0
+    var bitmap: Bitmap? = null
 
 
     @SuppressLint("SetTextI18n")
@@ -192,6 +196,7 @@ class BarcodeScan : AppCompatActivity() {
             }
 
         })
+
         barcodeDetector.setProcessor(object : Detector.Processor<Barcode>{
             override fun release() {
                 Toast.makeText(applicationContext, getString(R.string.stopScanReturnHome), Toast.LENGTH_SHORT).show()
@@ -200,7 +205,9 @@ class BarcodeScan : AppCompatActivity() {
             @SuppressLint("SetTextI18n")
             override fun receiveDetections(detections: Detector.Detections<Barcode>) {
                 if (autoScan == 1) {getAutoScan(detections)}
-                else if (autoScan == 0) {getManualScan(detections)}
+                else if (autoScan == 0) {
+                    getManualScan(detections)
+                }
 
             }
         })
@@ -219,7 +226,33 @@ class BarcodeScan : AppCompatActivity() {
             // runOnUiThread(Runnable { switchToPreview(binding.myViewFlipper, getBarCode) })
         }
         else if (barcodes.size()==0) {
-            Log.e("barcode detected", "none")
+            var ba: ByteArray?
+            cameraSource.takePicture(null, CameraSource.PictureCallback { data ->
+                ba = data
+                val exifInterface = ExifInterface(ByteArrayInputStream(ba))
+                val orientation =
+                    exifInterface.getAttributeInt(ExifInterface.TAG_ORIENTATION, 1)
+                var rotationDegrees = 0
+                when (orientation) {
+                    ExifInterface.ORIENTATION_ROTATE_90 -> rotationDegrees = 90
+                    ExifInterface.ORIENTATION_ROTATE_180 -> rotationDegrees = 180
+                    ExifInterface.ORIENTATION_ROTATE_270 -> rotationDegrees = 270
+                }
+
+                Log.e("rotation", rotationDegrees.toString())
+                val tempBitmap = BitmapFactory.decodeByteArray(ba, 0, ba!!.size)
+                val matrix = Matrix()
+                matrix.postRotate(rotationDegrees.toFloat())
+                bitmap = Bitmap.createBitmap(
+                    tempBitmap,
+                    0,
+                    0,
+                    tempBitmap.width,
+                    tempBitmap.height,
+                    matrix,
+                    true
+                )
+            })
             // Get all current custom items in DB.
             var customlist = productQueries.get_all_custom_products().executeAsList()
             if (customlist.isEmpty()) {
@@ -261,6 +294,15 @@ class BarcodeScan : AppCompatActivity() {
             latestbarcodescan = productQueries.get_custom_product_barcode(addedItem).executeAsList()[0]
             val localProduct =
                 productQueries.getlocal(latestbarcodescan).executeAsList()[0]
+            val imgLoc = localProduct.image
+            if (imgLoc != "null") {
+                val file = File(File(this@BarcodeScan.filesDir, "Products"),
+                    "${localProduct.RecordKey}.jpg")
+                if (file.exists()) {
+                    val myBitmap = BitmapFactory.decodeFile(file.toString())
+                    binding.flipperMedia.prodInfo.imageView.setImageBitmap(myBitmap)
+                }
+            }
             binding.flipperMedia.prodInfo.tvProductName.text = localProduct.product + ", "
             binding.flipperMedia.prodInfo.tvProductBrand.text = localProduct.brand
             binding.flipperMedia.prodInfo.tvbarCode.text = latestbarcodescan
@@ -494,6 +536,12 @@ class BarcodeScan : AppCompatActivity() {
             product = customProductName
             status = "0"
             image = "null"
+            Log.e("bitmap?", bitmap.toString())
+            val file = UpdateAndSaveImageTask(this, getbarcode
+                .replace("custom_", "").toLong(), database, bitmap).saveImage()
+            if (file != false) {
+                image = file.toString()
+            } else {Log.i("SpoilAlert", "Failed to save image.")}
         }
 
 
