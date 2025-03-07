@@ -28,15 +28,16 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.example.Product_data
+import com.example.spoilalert.adapters.ItemAdapter
 import com.example.spoilalert.databinding.ActivityBarcodeScanBinding
 import com.example.spoilalert.enginebuilder.OpenFoodFactsKtorClient
 import com.example.spoilalert.utils.DownloadAndSaveImageTask
 import com.example.spoilalert.utils.UpdateAndSaveImageTask
+import com.example.spoilalert.utils.loadImageFromWebOperations
 import com.google.android.gms.vision.CameraSource
 import com.google.android.gms.vision.Detector
 import com.google.android.gms.vision.barcode.Barcode
 import com.google.android.gms.vision.barcode.BarcodeDetector
-import com.typesafe.config.ConfigException.Null
 import kotlinx.coroutines.launch
 import java.io.ByteArrayInputStream
 import java.io.File
@@ -143,7 +144,6 @@ class BarcodeScan : AppCompatActivity() {
             val file = UpdateAndSaveImageTask(this, fileName, database, bitmap).saveImage()
             if (file != false) {
                 binding.flipperMedia.prodInfo.imageView.setImageBitmap(BitmapFactory.decodeFile(file.toString()))
-                binding.flipperMedia.prodInfo.editImageButton.setBackgroundResource(0)
                 binding.myViewFlipper.displayedChild = binding.myViewFlipper.indexOfChild(binding.flipperMedia.main2)
                 Toast.makeText(this, getString(R.string.updateImageSucceed), Toast.LENGTH_SHORT).show()
             } else {Log.i("SpoilAlert", "Failed to save image.")}
@@ -470,12 +470,15 @@ class BarcodeScan : AppCompatActivity() {
         }, ContextCompat.getMainExecutor(this))
     }
 
-    private fun checkForNull(localProduct: Product_data, barCode: String) {
+    private fun checkForNull(localProduct: Product_data) {
+        var isnull = true
         if (localProduct.product == "null") {
-            updateProductInfoDialog("ProductName", localProduct.product, barCode, "add")
+            updateProductInfoDialog("ProductName", localProduct.product, localProduct.barCode, "add")
+            isnull = false
         }
         else if (localProduct.brand == "null") {
-            updateProductInfoDialog("ProductBrand", localProduct.brand, barCode, "add")
+            updateProductInfoDialog("ProductBrand", localProduct.brand, localProduct.barCode, "add")
+            isnull = false
         }
         else if (localProduct.image == "null") {
             binding.flipperMedia.prodInfo.editImageButton.setBackgroundResource(R.drawable.circle_border_red)
@@ -484,8 +487,11 @@ class BarcodeScan : AppCompatActivity() {
                 getString(R.string.addProductImage),
                 Toast.LENGTH_SHORT
             ).show()
+            isnull = false
         }
-        productQueries.set_nullcheck(barCode)
+        if (localProduct.image != "null") {
+            binding.flipperMedia.prodInfo.editImageButton.setBackgroundResource(R.drawable.circle_background)
+        }
         if (addingCustom == 1) {
             dbinfoQueries.update_tokens()
             scans = dbinfoQueries.get_tokens().executeAsOne().toInt()
@@ -494,6 +500,9 @@ class BarcodeScan : AppCompatActivity() {
                         "\n$scans tokens remaining, ",
                 Toast.LENGTH_SHORT).show()
             addingCustom = 0
+        }
+        if (isnull) {
+            productQueries.set_nullcheck(localProduct.barCode)
         }
     }
 
@@ -541,7 +550,7 @@ class BarcodeScan : AppCompatActivity() {
         val dialog: AlertDialog = builder.create()
         dialog.setOnDismissListener {
             productQueries.set_nullcheck(barCode)
-            checkForNull(productQueries.getlocal(barCode).executeAsList()[0], barCode)
+            checkForNull(productQueries.getlocal(barCode).executeAsList()[0])
         }
         dialog.show()
     }
@@ -574,8 +583,7 @@ class BarcodeScan : AppCompatActivity() {
         activeScanBoolean = 1
         itemtobeAdded = 1
         viewFlipper.displayedChild = viewFlipper.indexOfChild(binding.flipperMedia.main2)
-        binding.flipperMedia.prodInfo.editImageButton.setBackgroundResource(0)
-        checkForNull(productQueries.getlocal(barCode).executeAsList()[0], barCode)
+        checkForNull(productQueries.getlocal(barCode).executeAsList()[0])
     }
 
     @SuppressLint("MissingPermission")
@@ -592,7 +600,6 @@ class BarcodeScan : AppCompatActivity() {
 
     operator fun get(index: Int) {}
     private suspend fun downloadProduct(getbarcode: String, customProductName: String) {
-//        try {
         var y = 0
         val json = ktorclient.fetchProductByCode(getbarcode)
         var brand = json.product?.brands.toString()
@@ -754,23 +761,5 @@ class BarcodeScan : AppCompatActivity() {
         itemQueries.removedfromstock(scandatetime, latestbarcodescan, latestbarcodescan)
         Toast.makeText(applicationContext, "Item has been removed", Toast.LENGTH_SHORT).show()
         switchToScan()
-    }
-}
-
-fun loadImageFromWebOperations(src: String): Bitmap? {
-    try {
-        Log.e("src", src)
-        val url = URL(src)
-        val connection = url.openConnection() as HttpURLConnection
-        connection.doInput = true
-        connection.connect()
-        val input = connection.inputStream
-        val myBitmap = BitmapFactory.decodeStream(input)
-        Log.e("Bitmap", "returned")
-        return myBitmap
-    } catch (e: IOException) {
-        e.printStackTrace()
-        Log.e("Exception", e.message!!)
-        return null
     }
 }

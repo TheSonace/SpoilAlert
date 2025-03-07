@@ -3,7 +3,6 @@ package com.example.spoilalert
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Intent
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
@@ -25,7 +24,6 @@ import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.example.spoilalert.adapters.ProductAdapter
 import com.example.spoilalert.databinding.ActivityMainBinding
 import com.example.spoilalert.enginebuilder.OpenFoodFactsKtorClient
-import com.example.spoilalert.models.ProductModel
 import com.example.spoilalert.utils.JsonConverter
 import com.example.spoilalert.utils.UpdateAndSaveImageTask
 
@@ -102,6 +100,8 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
                 binding.myViewFlipper.displayedChild = binding.myViewFlipper.indexOfChild(binding.flipperMedia.productView)
                 mStopCamera()
                 Toast.makeText(this, "Image Overwritten", Toast.LENGTH_SHORT).show()
+                binding.flipperMedia.editImageButton.setBackgroundResource(R.drawable.circle_background)
+                productQueries.set_nullcheck(binding.flipperMedia.tvbarCode.text.toString())
             } else {Log.i("SpoilAlert", "Failed to save image.")}
         }
 
@@ -259,12 +259,10 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
             if (columnName == "ProductName") {
                 productQueries.update_product(updatedValue, newValue, barCode)
                 binding.flipperMedia.tvProductName.text = "$updatedValue, "
-                iniBc()
             }
             if (columnName == "ProductBrand") {
                 productQueries.update_brand(updatedValue, newValue, barCode)
                 binding.flipperMedia.tvProductBrand.text = updatedValue
-                iniBc()
             }
         }
         // create and show the alert dialog
@@ -345,6 +343,7 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
 
     override fun onResume() {
         super.onResume()
+        Log.e("resumed main?", "yess")
         iniBc()
     }
 
@@ -358,34 +357,19 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
             viewFlipper.displayedChild = viewFlipper.indexOfChild(binding.flipperMedia.productView)}
         else if (binding.mainAddSlidingDrawer.isOpened) {binding.mainAddSlidingDrawer.animateClose()}
         else if (binding.mainMenuSlidingDrawer.isOpened) {binding.mainMenuSlidingDrawer.animateClose()}
-        else {super.onBackPressed()}
+        else {super.onBackPressed()
+            Log.e("return to main?", "yessss")}
         //super.onBackPressed();
     }
 
     private fun returnToMain() {
+        Log.e("return to main?", "yessss")
+        iniBc()
         binding.myViewFlipper.displayedChild = binding.myViewFlipper.indexOfChild(binding.main)
         val scans = dbinfoQueries.get_tokens().executeAsOne().toInt()
         binding.mainTokenCounter.text = "$scans\ntokens\nremaining"
     }
-
-    companion object {
-        @SuppressLint("SetTextI18n")
-        fun openPreview(productpreviewlist: String, item: ProductModel, binding: ActivityMainBinding, bitmapimg: Bitmap?) {
-            val viewFlipper = binding.myViewFlipper
-            binding.flipperMedia.editImageButton.setBackgroundResource(0)
-            var img = bitmapimg
-            if (img == null) {
-                img = loadImageFromWebOperations(productpreviewlist)
-                if (img == null) {
-                    binding.flipperMedia.editImageButton.setBackgroundResource(R.drawable.circle_border_red)}
-            }
-            binding.flipperMedia.imageView.setImageBitmap(img)
-            binding.flipperMedia.tvProductName.text = item.product + ", "
-            binding.flipperMedia.tvProductBrand.text = item.brand
-            binding.flipperMedia.tvbarCode.text = item.barCode
-            viewFlipper.displayedChild = viewFlipper.indexOfChild(binding.flipperMedia.productView)
-        }
-    }
+}
 
 
 
@@ -413,5 +397,3 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
 //    }
 //    @SuppressLint("ClickableViewAccessibility")
 //    override fun onTouch(p0: View?, p1: MotionEvent?): Boolean = false
-
-}

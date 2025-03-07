@@ -16,11 +16,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.example.spoilalert.Database
-import com.example.spoilalert.MainActivity
 import com.example.spoilalert.R
 import com.example.spoilalert.databinding.ActivityMainBinding
 import com.example.spoilalert.models.ProductModel
 import com.example.spoilalert.utils.DownloadAndSaveImageTask
+import com.example.spoilalert.utils.loadImageFromWebOperations
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -73,7 +73,7 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?,
         if (productQueries.get_nullcheck(item.barCode).executeAsList()[0].toInt() == 0) {
             holder.prodInfo.setBackgroundResource(R.drawable.circle_border_red)
         }
-        else {holder.prodInfo.setBackgroundResource(android.R.color.transparent)}
+        else {holder.prodInfo.setBackgroundResource(R.drawable.circle_background)}
 
         holder.tvName.text = item.name
         holder.tvDate.text = formatter.format(item.min_spoildate)
@@ -110,7 +110,7 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?,
         holder.prodInfo.setOnClickListener {
             productQueries.set_nullcheck(item.barCode)
             if (productQueries.get_nullcheck(item.barCode).executeAsList()[0].toInt() == 1) {
-                holder.prodInfo.setBackgroundResource(android.R.color.transparent)}
+                holder.prodInfo.setBackgroundResource(R.drawable.circle_background)}
             val record = productQueries.getRecordKey(item.barCode).executeAsList()[0]
             val img_loc = productQueries.getimg(record).executeAsList()[0]
             var myBitmap: Bitmap? = null
@@ -126,7 +126,7 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?,
                     myBitmap = BitmapFactory.decodeFile(file.toString())
                 }
             }
-            MainActivity.openPreview(img_loc, item, binding, myBitmap)
+            openPreview(img_loc, item, binding, myBitmap)
             }
 
         if (item.isExpanded!!) {
@@ -168,6 +168,22 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?,
             }
         }
         else (notifyDataSetChanged())
+    }
+
+    fun openPreview(productpreviewlist: String, item: ProductModel, binding: ActivityMainBinding, bitmapimg: Bitmap?) {
+        val viewFlipper = binding.myViewFlipper
+        binding.flipperMedia.editImageButton.setBackgroundResource(R.drawable.circle_background)
+        var img = bitmapimg
+        if (img == null) {
+            img = loadImageFromWebOperations(productpreviewlist)
+            if (img == null) {
+                binding.flipperMedia.editImageButton.setBackgroundResource(R.drawable.circle_border_red)}
+        }
+        binding.flipperMedia.imageView.setImageBitmap(img)
+        binding.flipperMedia.tvProductName.text = item.product + ", "
+        binding.flipperMedia.tvProductBrand.text = item.brand
+        binding.flipperMedia.tvbarCode.text = item.barCode
+        viewFlipper.displayedChild = viewFlipper.indexOfChild(binding.flipperMedia.productView)
     }
 
     class ProductViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
