@@ -12,6 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.compose.ui.text.font.Typeface
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
@@ -88,11 +89,17 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?,
             holder.tvDate.text = expiryDate.let { formatter.format(it) }
             holder.tvProductQty.text = item.item_data.size.toString()
 
-            if (diff <= 3){
-                holder.tvDate.setTextColor(Color.parseColor("RED"))
+            if (diff <= 2){
+                holder.tvDate.setTextColor(Color.parseColor("#FF0000"))
+                holder.tvDate.typeface = android.graphics.Typeface.DEFAULT_BOLD
+            }
+            else if (diff <= 5){
+                holder.tvDate.setTextColor(Color.parseColor("#FFA500"))
+                holder.tvDate.typeface = android.graphics.Typeface.DEFAULT_BOLD
             }
             else {
                 holder.tvDate.setTextColor(Color.parseColor("#80000000"))
+                holder.tvDate.typeface = android.graphics.Typeface.DEFAULT
             }}
         catch (_: IndexOutOfBoundsException) {}
 

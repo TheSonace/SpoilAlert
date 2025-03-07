@@ -7,6 +7,8 @@ import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
@@ -51,7 +53,7 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
 
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
-        enableEdgeToEdge()
+//        enableEdgeToEdge()
         setContentView(binding.root)
 
         binding.mainAddSlidingDrawer.animateOpen()
@@ -112,6 +114,7 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
         }
 
         binding.flipperMedia.tvProductBrand.setOnClickListener{
+
             updateProductInfoDialog("ProductBrand",
                 binding.flipperMedia.tvProductBrand.text.toString(),
                 binding.flipperMedia.tvbarCode.text.toString())
@@ -232,10 +235,21 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
 
     @SuppressLint("SetTextI18n")
     private fun updateProductInfoDialog(item: String, value: String, barCode: String) {
+        // Please make sure to also update updateProductInfoDialog in BarcodeScan
         val columnName = item.replace(", ", "")
         lateinit var newItem : String
-        if (columnName == "ProductName") { newItem = getString(R.string.updateProductName)}
-        if (columnName == "ProductBrand") { newItem = getString(R.string.updateProductBrand)}
+        var customlist = listOf("")
+        if (columnName == "ProductName") {
+            newItem = getString(R.string.updateProductName)
+            customlist = productQueries.get_all_products().executeAsList()
+        }
+        if (columnName == "ProductBrand") {
+            newItem = getString(R.string.updateProductBrand)
+            customlist = productQueries.get_all_brands().executeAsList()
+        }
+        if (customlist.isEmpty()) {
+            customlist = listOf("")
+        }
 
         val newValue = value.replace(", ", "")
         Log.e("Product Info Update", barCode)
@@ -246,15 +260,16 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
         val builder: AlertDialog.Builder = AlertDialog.Builder(this)
         builder.setTitle(newItem)
         // set the custom layout
+        val adapter: ArrayAdapter<String> = ArrayAdapter(this, android.R.layout.simple_list_item_1, customlist)
         val customLayout: View = layoutInflater.inflate(R.layout.dialog_update_product_info, null)
+        val autoCompleteTextView: AutoCompleteTextView = customLayout.findViewById(R.id.editText)
+        autoCompleteTextView.setAdapter(adapter)
         builder.setView(customLayout)
-        val editText: TextView = customLayout.findViewById<EditText>(R.id.editText)
-        editText.text = newValue
         // add a button
         builder.setPositiveButton(
             "Update"
         ) { _, _ -> // do something with response
-            val updatedValue = editText.text.toString()
+            val updatedValue = autoCompleteTextView.text.toString()
             Log.e("Product Info new Update", updatedValue)
             if (columnName == "ProductName") {
                 productQueries.update_product(updatedValue, newValue, barCode)

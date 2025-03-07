@@ -28,7 +28,6 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.example.Product_data
-import com.example.spoilalert.adapters.ItemAdapter
 import com.example.spoilalert.databinding.ActivityBarcodeScanBinding
 import com.example.spoilalert.enginebuilder.OpenFoodFactsKtorClient
 import com.example.spoilalert.utils.DownloadAndSaveImageTask
@@ -42,8 +41,6 @@ import kotlinx.coroutines.launch
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.IOException
-import java.net.HttpURLConnection
-import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -131,6 +128,7 @@ class BarcodeScan : AppCompatActivity() {
         }
 
         binding.button.setOnClickListener {
+            bitmap = null
             autoScan = 0
         }
 
@@ -146,6 +144,8 @@ class BarcodeScan : AppCompatActivity() {
                 binding.flipperMedia.prodInfo.imageView.setImageBitmap(BitmapFactory.decodeFile(file.toString()))
                 binding.myViewFlipper.displayedChild = binding.myViewFlipper.indexOfChild(binding.flipperMedia.main2)
                 Toast.makeText(this, getString(R.string.updateImageSucceed), Toast.LENGTH_SHORT).show()
+                binding.flipperMedia.prodInfo.editImageButton.setBackgroundResource(R.drawable.circle_background)
+                productQueries.set_nullcheck(binding.flipperMedia.prodInfo.tvbarCode.text.toString())
             } else {Log.i("SpoilAlert", "Failed to save image.")}
         }
 
@@ -225,15 +225,10 @@ class BarcodeScan : AppCompatActivity() {
             runOnUiThread(Runnable {
                 addCustomBarcode(customLayout, getBarcode)
             })
-            // AlertDialog, show barcode and ask for check. Is correct / manually enter if wrong
-            // getBarCode == returned barcode
-            // check if getBarCode is in DB, if not then perform downloadProduct(getBarCode, "")
-            // addingCustom = 1
-            // runOnUiThread(Runnable { switchToPreview(binding.myViewFlipper, getBarCode) })
         }
         else if (barcodes.size()==0) {
             var ba: ByteArray?
-            cameraSource.takePicture(null, CameraSource.PictureCallback { data ->
+            cameraSource.takePicture(null) { data ->
                 ba = data
                 val exifInterface = ExifInterface(ByteArrayInputStream(ba))
                 val orientation =
@@ -246,15 +241,18 @@ class BarcodeScan : AppCompatActivity() {
                         matrix.setRotate(180f)
                         matrix.postScale(-1f, 1f)
                     }
+
                     5 -> {
                         matrix.setRotate(90f)
                         matrix.postScale(-1f, 1f)
                     }
+
                     6 -> matrix.setRotate(90f)
                     7 -> {
                         matrix.setRotate(-90f)
                         matrix.postScale(-1f, 1f)
                     }
+
                     8 -> matrix.setRotate(-90f)
                 }
 
@@ -268,7 +266,7 @@ class BarcodeScan : AppCompatActivity() {
                     matrix,
                     true
                 )
-            })
+            }
             // Get all current custom items in DB.
             var customlist = productQueries.get_all_custom_products().executeAsList()
             if (customlist.isEmpty()) {
@@ -407,23 +405,23 @@ class BarcodeScan : AppCompatActivity() {
                     if (localProduct.status == "1") {
                         val record = localProduct.RecordKey
                         val imgLoc = productQueries.getimg(record).executeAsList()[0]
-                        var myBitmap: Bitmap? = null
+                        bitmap = null
                         if (imgLoc != "null") {
                             val file = File(File(this@BarcodeScan.filesDir, "Products"),
                                 "$record.jpg")
                             if (!file.exists()) {
                                 DownloadAndSaveImageTask(this@BarcodeScan, record, database).execute(imgLoc)
-                                myBitmap = loadImageFromWebOperations(localProduct.image)
+                                bitmap = loadImageFromWebOperations(localProduct.image)
                                 if (file.exists()) {
                                     productQueries.update_image(file.toString(), record)
                                     productQueries.set_nullcheck(localProduct.barCode)
                                 }
                             }
                             if (file.exists()) {
-                                myBitmap = BitmapFactory.decodeFile(file.toString())
+                                bitmap = BitmapFactory.decodeFile(file.toString())
                             }
                         }
-                        binding.flipperMedia.prodInfo.imageView.setImageBitmap(myBitmap)
+                        binding.flipperMedia.prodInfo.imageView.setImageBitmap(bitmap)
                         binding.flipperMedia.prodInfo.tvProductName.text = localProduct.product + ", "
                         binding.flipperMedia.prodInfo.tvProductBrand.text = localProduct.brand
                         binding.flipperMedia.prodInfo.tvbarCode.text = latestbarcodescan
@@ -477,6 +475,7 @@ class BarcodeScan : AppCompatActivity() {
             isnull = false
         }
         else if (localProduct.brand == "null") {
+            val customLayout: View = layoutInflater.inflate(R.layout.dialog_update_product_info, null)
             updateProductInfoDialog("ProductBrand", localProduct.brand, localProduct.barCode, "add")
             isnull = false
         }
@@ -508,15 +507,29 @@ class BarcodeScan : AppCompatActivity() {
 
     @SuppressLint("SetTextI18n")
     private fun updateProductInfoDialog(item: String, value: String, barCode: String, type: String) {
+        // Please make sure to also update updateProductInfoDialog in Mainactivity
         val columnName = item.replace(", ", "")
         lateinit var newItem : String
-        if (type == "add") {
-            if (columnName == "ProductName") { newItem = getString(R.string.addProductName)}
-            if (columnName == "ProductBrand") { newItem = getString(R.string.addProductBrand)}
+        var customlist = listOf("")
+        if (columnName == "ProductName") {
+            customlist = productQueries.get_all_products().executeAsList()
+            newItem = if (type == "add") {
+                getString(R.string.addProductName)
+            } else {
+                getString(R.string.addProductBrand)
+            }
         }
-        else {
-            if (columnName == "ProductName") { newItem = getString(R.string.updateProductName)}
-            if (columnName == "ProductBrand") { newItem = getString(R.string.updateProductBrand)}
+        if (columnName == "ProductBrand") {
+            customlist = productQueries.get_all_brands().executeAsList()
+            newItem = if (type == "add") {
+                getString(R.string.updateProductName)
+            } else {
+                getString(R.string.updateProductBrand)
+            }
+        }
+
+        if (customlist.isEmpty()) {
+            customlist = listOf("")
         }
 
         val newValue = value.replace(", ", "")
@@ -528,14 +541,16 @@ class BarcodeScan : AppCompatActivity() {
         val builder: AlertDialog.Builder = AlertDialog.Builder(this)
         builder.setTitle(newItem)
         // set the custom layout
+        val adapter: ArrayAdapter<String> = ArrayAdapter(this, android.R.layout.simple_list_item_1, customlist)
         val customLayout: View = layoutInflater.inflate(R.layout.dialog_update_product_info, null)
+        val autoCompleteTextView: AutoCompleteTextView = customLayout.findViewById(R.id.editText)
+        autoCompleteTextView.setAdapter(adapter)
         builder.setView(customLayout)
-        val editText: TextView = customLayout.findViewById<EditText>(R.id.editText)
         // add a button
         builder.setPositiveButton(
             "Update"
         ) { _, _ -> // do something with response
-            val updatedValue = editText.text.toString()
+            val updatedValue = autoCompleteTextView.text.toString()
             Log.e("Product Info new Update", updatedValue)
             if (columnName == "ProductName") {
                 productQueries.update_product(updatedValue, newValue, barCode)

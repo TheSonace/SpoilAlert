@@ -67,6 +67,14 @@ get_all_custom_products:
 SELECT DISTINCT product
 FROM product_data WHERE barCode LIKE '%custom%';
 
+get_all_products:
+SELECT DISTINCT product
+FROM product_data;
+
+get_all_brands:
+SELECT DISTINCT brand
+FROM product_data;
+
 get_custom_product_barcode:
 SELECT barCode
 FROM product_data WHERE product = :productName;
