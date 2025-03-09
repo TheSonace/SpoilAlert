@@ -22,6 +22,9 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
@@ -40,7 +43,9 @@ import com.google.android.gms.vision.barcode.BarcodeDetector
 import kotlinx.coroutines.launch
 import java.io.ByteArrayInputStream
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
+import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -60,6 +65,7 @@ class BarcodeScan : AppCompatActivity() {
 
     private var cameraLauncher: ActivityResultLauncher<String>? = null
     private lateinit var cameraProvider: ProcessCameraProvider
+    private lateinit var imageCapture: ImageCapture
 
     private val myFormat = "yyyyMMdd"
     private val sdf = SimpleDateFormat(myFormat, Locale.US)
@@ -137,16 +143,52 @@ class BarcodeScan : AppCompatActivity() {
         }
 
         binding.flipperMediaCamera.AddImageSaveButton.setOnClickListener{
-            val bitmap = binding.flipperMediaCamera.viewFinder.getBitmap()
             val fileName = productQueries.getRecordKey(binding.flipperMedia.prodInfo.tvbarCode.text.toString()).executeAsList()[0]
-            val file = UpdateAndSaveImageTask(this, fileName, database, bitmap).saveImage()
-            if (file != false) {
-                binding.flipperMedia.prodInfo.imageView.setImageBitmap(BitmapFactory.decodeFile(file.toString()))
-                binding.myViewFlipper.displayedChild = binding.myViewFlipper.indexOfChild(binding.flipperMedia.main2)
-                Toast.makeText(this, getString(R.string.updateImageSucceed), Toast.LENGTH_SHORT).show()
-                binding.flipperMedia.prodInfo.editImageButton.setBackgroundResource(R.drawable.circle_background)
-                productQueries.set_nullcheck(binding.flipperMedia.prodInfo.tvbarCode.text.toString())
-            } else {Log.i("SpoilAlert", "Failed to save image.")}
+
+            var photoFile = File(this.filesDir, "Products")
+            if (!photoFile.exists()) {
+                photoFile.mkdir()
+            }
+            photoFile = File(photoFile, "$fileName.jpg")
+
+            imageCapture.takePicture(
+                ContextCompat.getMainExecutor(this),
+                object : ImageCapture.OnImageCapturedCallback() {
+                    override fun onCaptureSuccess(image: ImageProxy) {
+                        val rotation = image.imageInfo.rotationDegrees
+                        val buffer: ByteBuffer = image.planes[0].buffer
+                        val bytes = ByteArray(buffer.remaining())
+                        buffer.get(bytes)
+                        val bitmimage = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                        val matrix = Matrix()
+                        matrix.setRotate(rotation.toFloat())
+                        val rotatedImage = bitmimage?.let { it1 ->
+                            Bitmap.createBitmap(
+                                it1,
+                                0,
+                                0,
+                                bitmimage.width,
+                                bitmimage.height,
+                                matrix,
+                                true
+                            )
+                        }
+                        val out = FileOutputStream(photoFile)
+                        rotatedImage!!.compress(Bitmap.CompressFormat.JPEG, 95, out)
+                        out.flush()
+                        out.close()
+
+                        binding.flipperMedia.prodInfo.imageView.setImageBitmap(rotatedImage)
+                        binding.myViewFlipper.displayedChild = binding.myViewFlipper.indexOfChild(binding.flipperMedia.prodInfo.productView)
+                        Toast.makeText(this@BarcodeScan, getString(R.string.updateImageSucceed), Toast.LENGTH_SHORT).show()
+                        binding.flipperMedia.prodInfo.editImageButton.setBackgroundResource(R.drawable.circle_background)
+                        productQueries.set_nullcheck(binding.flipperMedia.prodInfo.tvbarCode.text.toString())
+                    }
+                    override fun onError(exception: ImageCaptureException) {
+                        Log.e("SpoilAlert", "Error capturing image: ${exception.message}")
+                    }
+                }
+            )
         }
 
         binding.flipperMedia.prodInfo.tvProductName.setOnClickListener{
@@ -450,6 +492,9 @@ class BarcodeScan : AppCompatActivity() {
                     it.setSurfaceProvider(binding.flipperMediaCamera.viewFinder.surfaceProvider)
                 }
 
+            imageCapture = ImageCapture.Builder()
+                .build()
+
             // Select back camera as a default
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
@@ -459,7 +504,7 @@ class BarcodeScan : AppCompatActivity() {
 
                 // Bind use cases to camera
                 cameraProvider.bindToLifecycle(
-                    this, cameraSelector, preview)
+                    this, cameraSelector, imageCapture, preview)
 
             } catch(exc: Exception) {
                 Log.e("Camera", "Use case binding failed", exc)

@@ -3,20 +3,28 @@ package com.example.spoilalert
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.ImageFormat
+import android.graphics.Matrix
+import android.graphics.Rect
+import android.graphics.YuvImage
+import android.media.Image
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
-import android.widget.EditText
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.OptIn
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ExperimentalGetImage
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
@@ -27,7 +35,9 @@ import com.example.spoilalert.adapters.ProductAdapter
 import com.example.spoilalert.databinding.ActivityMainBinding
 import com.example.spoilalert.enginebuilder.OpenFoodFactsKtorClient
 import com.example.spoilalert.utils.JsonConverter
-import com.example.spoilalert.utils.UpdateAndSaveImageTask
+import java.io.File
+import java.io.FileOutputStream
+import java.nio.ByteBuffer
 
 
 class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.OnGestureListener {
@@ -42,6 +52,7 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
     private var mRecyclerView: RecyclerView? = null
     private val productQueries = database.productQueries
     private lateinit var cameraProvider: ProcessCameraProvider
+    private lateinit var imageCapture: ImageCapture
 
     @SuppressLint("QueryPermissionsNeeded")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -94,17 +105,54 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
         }
 
         binding.flipperMediaCamera.AddImageSaveButton.setOnClickListener{
-            val bitmap = binding.flipperMediaCamera.viewFinder.getBitmap()
             val fileName = productQueries.getRecordKey(binding.flipperMedia.tvbarCode.text.toString()).executeAsList()[0]
-            val file = UpdateAndSaveImageTask(this, fileName, database, bitmap).saveImage()
-            if (file != false) {
-                binding.flipperMedia.imageView.setImageBitmap(BitmapFactory.decodeFile(file.toString()))
-                binding.myViewFlipper.displayedChild = binding.myViewFlipper.indexOfChild(binding.flipperMedia.productView)
-                mStopCamera()
-                Toast.makeText(this, "Image Overwritten", Toast.LENGTH_SHORT).show()
-                binding.flipperMedia.editImageButton.setBackgroundResource(R.drawable.circle_background)
-                productQueries.set_nullcheck(binding.flipperMedia.tvbarCode.text.toString())
-            } else {Log.i("SpoilAlert", "Failed to save image.")}
+
+            var photoFile = File(this.filesDir, "Products")
+            if (!photoFile.exists()) {
+                photoFile.mkdir()
+            }
+            photoFile = File(photoFile, "$fileName.jpg")
+
+            imageCapture.takePicture(
+                ContextCompat.getMainExecutor(this),
+                object : ImageCapture.OnImageCapturedCallback() {
+                    override fun onCaptureSuccess(image: ImageProxy) {
+                        val rotation = image.imageInfo.rotationDegrees
+                        val buffer: ByteBuffer = image.planes[0].buffer
+                        val bytes = ByteArray(buffer.remaining())
+                        buffer.get(bytes)
+                        val bitmimage = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                        val matrix = Matrix()
+                        matrix.setRotate(rotation.toFloat())
+                        val rotatedImage = bitmimage?.let { it1 ->
+                            Bitmap.createBitmap(
+                                it1,
+                                0,
+                                0,
+                                bitmimage.width,
+                                bitmimage.height,
+                                matrix,
+                                true
+                            )
+                        }
+                        val out = FileOutputStream(photoFile)
+                        rotatedImage!!.compress(Bitmap.CompressFormat.JPEG, 95, out)
+                        out.flush()
+                        out.close()
+
+                        binding.flipperMedia.imageView.setImageBitmap(rotatedImage)
+                        binding.myViewFlipper.displayedChild = binding.myViewFlipper.indexOfChild(binding.flipperMedia.productView)
+                        mStopCamera()
+                        Toast.makeText(this@MainActivity, "Image Overwritten", Toast.LENGTH_SHORT).show()
+                        binding.flipperMedia.editImageButton.setBackgroundResource(R.drawable.circle_background)
+                        productQueries.set_nullcheck(binding.flipperMedia.tvbarCode.text.toString())
+                    }
+
+                    override fun onError(exception: ImageCaptureException) {
+                        Log.e("SpoilAlert", "Error capturing image: ${exception.message}")
+                    }
+                }
+            )
         }
 
         binding.flipperMedia.tvProductName.setOnClickListener{
@@ -210,6 +258,9 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
                     it.setSurfaceProvider(binding.flipperMediaCamera.viewFinder.surfaceProvider)
                 }
 
+            imageCapture = ImageCapture.Builder()
+                .build()
+
             // Select back camera as a default
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
@@ -219,7 +270,7 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
 
                 // Bind use cases to camera
                 cameraProvider.bindToLifecycle(
-                    this, cameraSelector, preview)
+                    this, cameraSelector, imageCapture, preview)
 
             } catch(exc: Exception) {
                 Log.e("Camera", "Use case binding failed", exc)
