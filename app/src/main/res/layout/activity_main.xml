@@ -28,6 +28,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="64dp"
             android:layout_centerHorizontal="true"
+            android:layout_below="@+id/ad_view_container"
             android:text="@string/intro_text"
             android:textSize="16sp"
             android:textStyle="bold"
