@@ -36,6 +36,7 @@ import com.example.spoilalert.enginebuilder.OpenFoodFactsKtorClient
 import com.example.spoilalert.utils.DownloadAndSaveImageTask
 import com.example.spoilalert.utils.UpdateAndSaveImageTask
 import com.example.spoilalert.utils.loadImageFromWebOperations
+import com.example.spoilalert.utils.rotateImageProxy
 import com.google.android.gms.vision.CameraSource
 import com.google.android.gms.vision.Detector
 import com.google.android.gms.vision.barcode.Barcode
@@ -144,42 +145,15 @@ class BarcodeScan : AppCompatActivity() {
 
         binding.flipperMediaCamera.AddImageSaveButton.setOnClickListener{
             val fileName = productQueries.getRecordKey(binding.flipperMedia.prodInfo.tvbarCode.text.toString()).executeAsList()[0]
-
-            var photoFile = File(this.filesDir, "Products")
-            if (!photoFile.exists()) {
-                photoFile.mkdir()
-            }
-            photoFile = File(photoFile, "$fileName.jpg")
-
             imageCapture.takePicture(
                 ContextCompat.getMainExecutor(this),
                 object : ImageCapture.OnImageCapturedCallback() {
                     override fun onCaptureSuccess(image: ImageProxy) {
-                        val rotation = image.imageInfo.rotationDegrees
-                        val buffer: ByteBuffer = image.planes[0].buffer
-                        val bytes = ByteArray(buffer.remaining())
-                        buffer.get(bytes)
-                        val bitmimage = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-                        val matrix = Matrix()
-                        matrix.setRotate(rotation.toFloat())
-                        val rotatedImage = bitmimage?.let { it1 ->
-                            Bitmap.createBitmap(
-                                it1,
-                                0,
-                                0,
-                                bitmimage.width,
-                                bitmimage.height,
-                                matrix,
-                                true
-                            )
-                        }
-                        val out = FileOutputStream(photoFile)
-                        rotatedImage!!.compress(Bitmap.CompressFormat.JPEG, 95, out)
-                        out.flush()
-                        out.close()
+                        val rotatedImage = rotateImageProxy(image)
+                        UpdateAndSaveImageTask(this@BarcodeScan, fileName, database, rotatedImage).saveImage()
 
                         binding.flipperMedia.prodInfo.imageView.setImageBitmap(rotatedImage)
-                        binding.myViewFlipper.displayedChild = binding.myViewFlipper.indexOfChild(binding.flipperMedia.prodInfo.productView)
+                        binding.myViewFlipper.displayedChild = binding.myViewFlipper.indexOfChild(binding.flipperMedia.main2)
                         Toast.makeText(this@BarcodeScan, getString(R.string.updateImageSucceed), Toast.LENGTH_SHORT).show()
                         binding.flipperMedia.prodInfo.editImageButton.setBackgroundResource(R.drawable.circle_background)
                         productQueries.set_nullcheck(binding.flipperMedia.prodInfo.tvbarCode.text.toString())
@@ -469,7 +443,7 @@ class BarcodeScan : AppCompatActivity() {
                         binding.flipperMedia.prodInfo.tvbarCode.text = latestbarcodescan
                         runOnUiThread{ switchToPreview(viewFlipper, latestbarcodescan) }
                     }
-                } catch(_: NullPointerException) {} //catch(_:IndexOutOfBoundsException) {}
+                } catch(_: NullPointerException) {} catch(_:IndexOutOfBoundsException) {}
             }
             else {
                 latestbarcodescan = ""
@@ -515,16 +489,15 @@ class BarcodeScan : AppCompatActivity() {
 
     private fun checkForNull(localProduct: Product_data) {
         var isnull = true
-        if (localProduct.product == "null") {
+        if (localProduct.product == "null" || localProduct.product == "" || localProduct.product == " ") {
             updateProductInfoDialog("ProductName", localProduct.product, localProduct.barCode, "add")
             isnull = false
         }
-        else if (localProduct.brand == "null") {
-            val customLayout: View = layoutInflater.inflate(R.layout.dialog_update_product_info, null)
+        else if (localProduct.brand == "null" || localProduct.brand == "" || localProduct.brand == " ") {
             updateProductInfoDialog("ProductBrand", localProduct.brand, localProduct.barCode, "add")
             isnull = false
         }
-        else if (localProduct.image == "null") {
+        else if (localProduct.image == "null" || localProduct.image == "" || localProduct.image == " ") {
             binding.flipperMedia.prodInfo.editImageButton.setBackgroundResource(R.drawable.circle_border_red)
             Toast.makeText(
                 applicationContext,
@@ -658,7 +631,6 @@ class BarcodeScan : AppCompatActivity() {
 
     }
 
-    operator fun get(index: Int) {}
     private suspend fun downloadProduct(getbarcode: String, customProductName: String) {
         var y = 0
         val json = ktorclient.fetchProductByCode(getbarcode)
@@ -688,12 +660,12 @@ class BarcodeScan : AppCompatActivity() {
             status = "1"
         }
 
-        Log.e("Newbarcode", customProductName)
-        Log.e("Newbarcode", json.toString())
-        Log.e("Newbarcode", brand)
-        Log.e("Newbarcode", product)
-        Log.e("Newbarcode", status)
-        Log.e("Newbarcode", image)
+        Log.e("Newbarcode, name", customProductName)
+        Log.e("Newbarcode, json", json.toString())
+        Log.e("Newbarcode, brand", brand)
+        Log.e("Newbarcode, product", product)
+        Log.e("Newbarcode, status", status)
+        Log.e("Newbarcode, image", image)
 
 //        if (nutriments != null) {
 //            Log.d("string of nutriments", nutriments.toString())

@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.spoilalert"
-        minSdk = 26
+        minSdk = 28
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -72,6 +72,7 @@ dependencies {
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
     implementation(libs.androidx.exifinterface)
+    implementation("com.google.android.gms:play-services-ads:22.4.0")
     val kotlin_version = "1.7.0"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")
     testImplementation(libs.junit)
@@ -82,6 +83,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
 
     //Camera
+    implementation("com.google.guava:guava:31.0.1-android")
     implementation("androidx.camera:camera-camera2:1.1.0-alpha04")
     implementation("androidx.camera:camera-lifecycle:1.1.0-alpha04")
     implementation("androidx.camera:camera-view:1.0.0-alpha21")

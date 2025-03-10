@@ -16,8 +16,9 @@ import java.lang.ref.WeakReference
 class DownloadAndSaveImageTask(context: Context, filename: Long, database: Database) : AsyncTask<String, Unit, Unit>() {
     private var mContext: WeakReference<Context> = WeakReference(context)
     private var fileName: Long = filename
-    val productQueries = database.productQueries
+    private val productQueries = database.productQueries
 
+    @Deprecated("Deprecated in Java")
     override fun doInBackground(vararg params: String?) {
         val url = params[0]
         val requestOptions = RequestOptions()

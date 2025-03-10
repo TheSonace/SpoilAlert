@@ -3,13 +3,6 @@ package com.example.spoilalert
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.ImageFormat
-import android.graphics.Matrix
-import android.graphics.Rect
-import android.graphics.YuvImage
-import android.media.Image
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -19,9 +12,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.OptIn
 import androidx.camera.core.CameraSelector
-import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
@@ -35,12 +26,26 @@ import com.example.spoilalert.adapters.ProductAdapter
 import com.example.spoilalert.databinding.ActivityMainBinding
 import com.example.spoilalert.enginebuilder.OpenFoodFactsKtorClient
 import com.example.spoilalert.utils.JsonConverter
-import java.io.File
-import java.io.FileOutputStream
-import java.nio.ByteBuffer
+import com.example.spoilalert.utils.UpdateAndSaveImageTask
+import com.example.spoilalert.utils.rotateImageProxy
+import com.google.android.gms.ads.AdError
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdSize.AUTO_HEIGHT
+import com.google.android.gms.ads.AdSize.FULL_WIDTH
+import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.FullScreenContentCallback
+import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.MobileAds
+import com.google.android.gms.ads.rewarded.RewardedAd
+import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.OnGestureListener {
+    private var adView: AdView? = null
     val ktorclient = OpenFoodFactsKtorClient()
     private var scanBarcode: ActivityResultLauncher<String>? = null
     private var cameraLauncher: ActivityResultLauncher<String>? = null
@@ -54,6 +59,9 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
     private lateinit var cameraProvider: ProcessCameraProvider
     private lateinit var imageCapture: ImageCapture
 
+    private var rewardedAd: RewardedAd? = null
+    private final var TAG = "MainActivity"
+
     @SuppressLint("QueryPermissionsNeeded")
     override fun onCreate(savedInstanceState: Bundle?) {
 //        itemQueries.deleteAll()
@@ -66,6 +74,20 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
         binding = ActivityMainBinding.inflate(layoutInflater)
 //        enableEdgeToEdge()
         setContentView(binding.root)
+//
+        val backgroundScope = CoroutineScope(Dispatchers.IO)
+        backgroundScope.launch {
+            MobileAds.initialize(this@MainActivity) {}
+        }
+
+        val adView = AdView(this)
+        adView.adUnitId = "ca-app-pub-3940256099942544/9214589741"
+        adView.setAdSize(AdSize(FULL_WIDTH, AUTO_HEIGHT))
+        this.adView = adView
+        binding.adViewContainer.addView(adView)
+        val adRequest = AdRequest.Builder().build()
+        adView.loadAd(adRequest)
+        loadAdd(adRequest)
 
         binding.mainAddSlidingDrawer.animateOpen()
         binding.mainMenuSlidingDrawer.animateOpen()
@@ -96,6 +118,36 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
             }
         }
 
+        rewardedAd?.fullScreenContentCallback = object: FullScreenContentCallback() {
+            override fun onAdClicked() {
+                // Called when a click is recorded for an ad.
+                Log.d(TAG, "Ad was clicked.")
+            }
+
+            override fun onAdDismissedFullScreenContent() {
+                // Called when ad is dismissed.
+                // Set the ad reference to null so you don't show the ad a second time.
+                Log.d(TAG, "Ad dismissed fullscreen content.")
+                rewardedAd = null
+            }
+
+            override fun onAdFailedToShowFullScreenContent(p0: AdError) {
+                // Called when ad fails to show.
+                Log.e(TAG, "Ad failed to show fullscreen content.")
+                rewardedAd = null
+            }
+
+            override fun onAdImpression() {
+                // Called when an impression is recorded for an ad.
+                Log.d(TAG, "Ad recorded an impression.")
+            }
+
+            override fun onAdShowedFullScreenContent() {
+                // Called when ad is shown.
+                Log.d(TAG, "Ad showed fullscreen content.")
+            }
+        }
+
         binding.mainMenuStartScanButton.setOnClickListener {
             scanBarcode?.launch(android.Manifest.permission.CAMERA)
         }
@@ -106,39 +158,12 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
 
         binding.flipperMediaCamera.AddImageSaveButton.setOnClickListener{
             val fileName = productQueries.getRecordKey(binding.flipperMedia.tvbarCode.text.toString()).executeAsList()[0]
-
-            var photoFile = File(this.filesDir, "Products")
-            if (!photoFile.exists()) {
-                photoFile.mkdir()
-            }
-            photoFile = File(photoFile, "$fileName.jpg")
-
             imageCapture.takePicture(
                 ContextCompat.getMainExecutor(this),
                 object : ImageCapture.OnImageCapturedCallback() {
                     override fun onCaptureSuccess(image: ImageProxy) {
-                        val rotation = image.imageInfo.rotationDegrees
-                        val buffer: ByteBuffer = image.planes[0].buffer
-                        val bytes = ByteArray(buffer.remaining())
-                        buffer.get(bytes)
-                        val bitmimage = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-                        val matrix = Matrix()
-                        matrix.setRotate(rotation.toFloat())
-                        val rotatedImage = bitmimage?.let { it1 ->
-                            Bitmap.createBitmap(
-                                it1,
-                                0,
-                                0,
-                                bitmimage.width,
-                                bitmimage.height,
-                                matrix,
-                                true
-                            )
-                        }
-                        val out = FileOutputStream(photoFile)
-                        rotatedImage!!.compress(Bitmap.CompressFormat.JPEG, 95, out)
-                        out.flush()
-                        out.close()
+                        val rotatedImage = rotateImageProxy(image)
+                        UpdateAndSaveImageTask(this@MainActivity, fileName, database, rotatedImage).saveImage()
 
                         binding.flipperMedia.imageView.setImageBitmap(rotatedImage)
                         binding.myViewFlipper.displayedChild = binding.myViewFlipper.indexOfChild(binding.flipperMedia.productView)
@@ -169,10 +194,21 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
         }
 
         binding.mainWatchAdd.setOnClickListener {
-            dbinfoQueries.watched_add()
-            scans = dbinfoQueries.get_tokens().executeAsOne().toInt()
-            binding.mainTokenCounter.text = "$scans\ntokens\nremaining"
-            Toast.makeText(applicationContext, "Watched add! 10 tokens Added. $scans tokens remaining", Toast.LENGTH_SHORT).show()
+            rewardedAd?.let { ad ->
+                ad.show(this) {
+                    dbinfoQueries.watched_add()
+                    scans = dbinfoQueries.get_tokens().executeAsOne().toInt()
+                    binding.mainTokenCounter.text = "$scans\ntokens\nremaining"
+                    Toast.makeText(applicationContext, "Watched add! 10 tokens Added. $scans tokens remaining", Toast.LENGTH_SHORT).show()
+                    Log.d(TAG, "User earned the reward.")
+                    rewardedAd = null
+                    loadAdd(adRequest)
+                    val adRequest = AdRequest.Builder().build()
+                    adView.loadAd(adRequest)
+                }
+            } ?: run {
+                Log.d(TAG, "The rewarded ad wasn't ready yet.")
+            }
         }
 
         binding.mainMenuSettingsButton.setOnClickListener {
@@ -184,10 +220,19 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
         }
     }
 
-//    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
-//        event.let { gestureDetector.onTouchEvent(it) }
-//        return super.dispatchTouchEvent(event)
-//    }
+    private fun loadAdd (adRequest: AdRequest) {
+        RewardedAd.load(this,"ca-app-pub-3940256099942544/5224354917", adRequest, object : RewardedAdLoadCallback() {
+        override fun onAdFailedToLoad(adError: LoadAdError) {
+            Log.d(TAG, adError.toString())
+            rewardedAd = null
+        }
+
+        override fun onAdLoaded(ad: RewardedAd) {
+            Log.d(TAG, "Ad was loaded.")
+            rewardedAd = ad
+        }
+    })}
+
     private fun logItemsandProducts() {
         val allitems = itemQueries.selectjson().executeAsList()
         val sb: String = allitems.toString()
@@ -436,30 +481,3 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
         binding.mainTokenCounter.text = "$scans\ntokens\nremaining"
     }
 }
-
-
-
-
-
-//    override fun onDown(p0: MotionEvent): Boolean = false
-//    override fun onShowPress(p0: MotionEvent) {}
-//    override fun onSingleTapUp(p0: MotionEvent): Boolean = false
-//    override fun onScroll(p0: MotionEvent?, p1: MotionEvent, p2: Float, p3: Float): Boolean = false
-//    override fun onLongPress(p0: MotionEvent) {}
-//    override fun onFling(p0: MotionEvent?, p1: MotionEvent, p2: Float, p3: Float): Boolean {
-//        val addsMenu = binding.myViewFlipper.findViewById<SlidingDrawer>(R.id.mainAddSlidingDrawer)
-//        val mainMenu = binding.myViewFlipper.findViewById<SlidingDrawer>(R.id.mainMenuSlidingDrawer)
-//        // Handle the fling gesture
-//        if (p2 > 500) {
-//            // Right fling
-//            if (mainMenu.isOpened) {mainMenu.animateClose()}
-//            if (!mainMenu.isOpened) {addsMenu.animateOpen()}
-//        } else if (p3 < -500) {
-//            // Left fling
-//            if (addsMenu.isOpened) {addsMenu.animateClose()}
-//            if (!addsMenu.isOpened) {mainMenu.animateOpen()}
-//        }
-//        return true
-//    }
-//    @SuppressLint("ClickableViewAccessibility")
-//    override fun onTouch(p0: View?, p1: MotionEvent?): Boolean = false
