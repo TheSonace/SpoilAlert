@@ -3,8 +3,6 @@ package com.example.spoilalert
 import android.annotation.SuppressLint
 import android.app.AlarmManager
 import android.app.AlertDialog
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -48,7 +46,10 @@ import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 
 class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.OnGestureListener {
@@ -230,59 +231,63 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
         binding.mainMenuInfoButton.setOnClickListener {
             Toast.makeText(applicationContext, "Placeholder for info button", Toast.LENGTH_SHORT).show()
         }
-
-
-        setAlarm()
     }
 
-//    fun scheduleNotifications(context: Context) {
-//        val timesArray = arrayOf("21:03", "21:04", "21:05", "21:06", "21:07")
-//        for(time in timesArray){
-//            scheduleNotification(time,"Almost time to sleep! "+time, "a message", context)
-//        }
-//
-//    }
     private fun setAlarm(){
-        val notificationTime = "22:16"
-        val hour = notificationTime.split(":")[0].toInt()
-        val minutes = notificationTime.split(":")[1].toInt()
-        val calendar = Calendar.getInstance()
-        calendar.set(Calendar.HOUR_OF_DAY, hour)
-        calendar.set(Calendar.MINUTE, minutes)
-        calendar.set(Calendar.SECOND, 0)
+        val myFormat = "yyyyMMdd"
+        val sdf = SimpleDateFormat(myFormat, Locale.US)
+        val dateCrit = sdf.format(Calendar.getInstance().time).toInt() + 5
+        val scans = itemQueries.selectalarm(dateCrit.toDouble()).executeAsList()
+//        val timesArray = arrayOf("8:41", "8:42", "8:03", "8:04")
         alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(this, AlarmReceiver::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(this, 100, intent, PendingIntent.FLAG_MUTABLE)
-        alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
-        Toast.makeText(this, "Alarm set Successfully!", Toast.LENGTH_SHORT).show()
-    }
+        for ( i in 0 until 5) {
+            try{
+                Log.e("scanstest_date", scans[i].spoildate)
+                Log.e("scanstest_item", scans[i].Item!!)
+                val notificationTime = scans[i].spoildate
+                val date: Date = sdf.parse(notificationTime)!!
+                val timeInMillis: Long = date.time
+//
+//                val notification = timesArray[i]
+//                Log.e("notification", notification)
+//                val hour = notification.split(":")[0].toInt()
+//                val minutes = notification.split(":")[1].toInt()
+//                val calendar = Calendar.getInstance()
+//                calendar.set(Calendar.HOUR_OF_DAY, hour)
+//                calendar.set(Calendar.MINUTE, minutes)
+//                calendar.set(Calendar.SECOND, 0)
 
-//    fun scheduleNotification(notificationTime: String, notificationTitle: String, notificationMessage: String, context: Context) {
-//        Log.e("notification", notificationTitle)
+                val intent = Intent(this, AlarmReceiver::class.java)
+                intent.putExtra("description",scans[i].Item!!)
+                intent.putExtra("channel", "Orange Lead-Time")
+                val pendingIntent =
+                    PendingIntent.getBroadcast(this, i, intent, PendingIntent.FLAG_MUTABLE)
+                alarmManager.setExact(AlarmManager.RTC_WAKEUP, timeInMillis, pendingIntent)
+//                alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
+//                Toast.makeText(this, "Alarm set Successfully!", Toast.LENGTH_SHORT).show()
+                }
+            catch (_: IndexOutOfBoundsException) {
+                val pendingIntent2 =
+                    PendingIntent.getBroadcast(this, i, intent, PendingIntent.FLAG_MUTABLE)
+                alarmManager.cancel(pendingIntent2)
+            }
+        }
+
+
+//        val notificationTime = "07:33"
 //        val hour = notificationTime.split(":")[0].toInt()
 //        val minutes = notificationTime.split(":")[1].toInt()
-//        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-//        val intent = Intent(context, AlarmReceiver::class.java).apply {
-//            putExtra("title", notificationTitle)
-//            putExtra("message", notificationMessage)
-//        }
-//        val pendingIntent = PendingIntent.getBroadcast(context, hour+minutes, intent, PendingIntent.FLAG_MUTABLE)
 //        val calendar = Calendar.getInstance()
 //        calendar.set(Calendar.HOUR_OF_DAY, hour)
 //        calendar.set(Calendar.MINUTE, minutes)
 //        calendar.set(Calendar.SECOND, 0)
-//
-//        //If the time is already passed set it for the next day
-//        if (Calendar.getInstance().after(calendar)) {
-//            calendar.add(Calendar.DATE, 1)
-//        }
-//        // Schedule the notification
-//        alarmManager.setExact(
-//            AlarmManager.RTC_WAKEUP,
-//            calendar.timeInMillis,
-//            pendingIntent
-//        )
-//    }
+//        alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+//        val intent = Intent(this, AlarmReceiver::class.java)
+//        intent.putExtra("description","Notice me senpai!");
+//        val pendingIntent = PendingIntent.getBroadcast(this, 100, intent, PendingIntent.FLAG_MUTABLE)
+//        alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
+//        Toast.makeText(this, "Alarm set Successfully!", Toast.LENGTH_SHORT).show()
+    }
 
     private fun loadAdd (adRequest: AdRequest) {
         RewardedAd.load(this,"ca-app-pub-3940256099942544/5224354917", adRequest, object : RewardedAdLoadCallback() {
@@ -351,6 +356,7 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
         val adapter = ProductAdapter(this, JsonConverter(this, allitems).getItemData(), binding)
         mRecyclerView!!.adapter = adapter
         mRecyclerView!!.layoutManager = LinearLayoutManager(this)
+        setAlarm()
     }
 
     private fun startCamera() {

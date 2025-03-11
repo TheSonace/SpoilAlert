@@ -1,30 +1,36 @@
 package com.example.spoilalert.utils
 
-import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import com.example.spoilalert.MainActivity
 import com.example.spoilalert.R
+import kotlin.properties.Delegates
 
 class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
-        Log.e("notification", context.toString())
+        val data = intent!!.getStringExtra("description")!!
+        val channelId = intent.getStringExtra("channel")!!
         if (context == null) return
-        startNotification(context)
+        startNotification(context, data, channelId)
     }
 
-    private fun startNotification(context: Context) {
-        val channelId = "100"
+    private fun startNotification(context: Context, description: String, channelid: String) {
+        var requestCode by Delegates.notNull<Int>()
+        if (channelid == "Orange Lead-Time") {
+            requestCode = 100
+        }
+        if (channelid == "Red Lead-Time") {
+            requestCode = 101
+        }
+
         val channel = NotificationChannel(
-            channelId, "my channel",
+            channelid, channelid,
             NotificationManager.IMPORTANCE_HIGH
         )
         channel.description = "description"
@@ -33,12 +39,13 @@ class AlarmReceiver : BroadcastReceiver() {
         }
 
         val intent = Intent(context, MainActivity::class.java)
-        val pendingIntent = PendingIntent.getActivity(context, 100, intent, PendingIntent.FLAG_MUTABLE)
+        val pendingIntent = PendingIntent.getActivity(context, requestCode, intent, PendingIntent.FLAG_MUTABLE)
 
-        val notification = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(R.mipmap.ic_launcher_round)
-            .setContentTitle("Title")
-            .setContentText("Text")
+        val notification = NotificationCompat.Builder(context, channelid)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setColor(context.resources.getColor(R.color.green))
+            .setContentTitle("An item may be reaching its spoildate!")
+            .setContentText(description)
             .setContentIntent(pendingIntent)
             .build()
 
