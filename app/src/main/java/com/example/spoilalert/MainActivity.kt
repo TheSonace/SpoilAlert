@@ -262,7 +262,7 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
                 intent.putExtra("channel", "Orange Lead-Time")
                 val pendingIntent =
                     PendingIntent.getBroadcast(this, i, intent, PendingIntent.FLAG_MUTABLE)
-                alarmManager.setExact(AlarmManager.RTC_WAKEUP, timeInMillis, pendingIntent)
+                alarmManager.set(AlarmManager.RTC_WAKEUP, timeInMillis, pendingIntent)
 //                alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
 //                Toast.makeText(this, "Alarm set Successfully!", Toast.LENGTH_SHORT).show()
                 }
@@ -272,21 +272,6 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
                 alarmManager.cancel(pendingIntent2)
             }
         }
-
-
-//        val notificationTime = "07:33"
-//        val hour = notificationTime.split(":")[0].toInt()
-//        val minutes = notificationTime.split(":")[1].toInt()
-//        val calendar = Calendar.getInstance()
-//        calendar.set(Calendar.HOUR_OF_DAY, hour)
-//        calendar.set(Calendar.MINUTE, minutes)
-//        calendar.set(Calendar.SECOND, 0)
-//        alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
-//        val intent = Intent(this, AlarmReceiver::class.java)
-//        intent.putExtra("description","Notice me senpai!");
-//        val pendingIntent = PendingIntent.getBroadcast(this, 100, intent, PendingIntent.FLAG_MUTABLE)
-//        alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
-//        Toast.makeText(this, "Alarm set Successfully!", Toast.LENGTH_SHORT).show()
     }
 
     private fun loadAdd (adRequest: AdRequest) {
