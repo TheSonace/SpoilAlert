@@ -365,6 +365,9 @@ data class Product(
     @SerialName("net_weight_value")
     val netWeightValue: String? = null,
 
+    @SerialName("nutriscore_grade")
+    val nutriscoreGrade: String? = null,
+
     @SerialName("nutrition_data_per")
     val nutritionDataPer: String? = null,
 

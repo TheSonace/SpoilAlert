@@ -388,25 +388,19 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
     @SuppressLint("SetTextI18n")
     private fun updateProductInfoDialog(item: String, value: String, barCode: String) {
         // Please make sure to also update updateProductInfoDialog in BarcodeScan
-        val columnName = item.replace(", ", "")
         lateinit var newItem : String
         var customlist = listOf("")
-        if (columnName == "ProductName") {
+        if (item == "ProductName") {
             newItem = getString(R.string.updateProductName)
             customlist = productQueries.get_all_products().executeAsList()
         }
-        if (columnName == "ProductBrand") {
+        if (item == "ProductBrand") {
             newItem = getString(R.string.updateProductBrand)
             customlist = productQueries.get_all_brands().executeAsList()
         }
         if (customlist.isEmpty()) {
             customlist = listOf("")
         }
-
-        val newValue = value.replace(", ", "")
-        Log.e("Product Info Update", barCode)
-        Log.e("Product Info Update", newItem)
-        Log.e("Product Info Update", newValue)
 
         // create an alert builder
         val builder: AlertDialog.Builder = AlertDialog.Builder(this)
@@ -422,13 +416,12 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
             "Update"
         ) { _, _ -> // do something with response
             val updatedValue = autoCompleteTextView.text.toString()
-            Log.e("Product Info new Update", updatedValue)
-            if (columnName == "ProductName") {
-                productQueries.update_product(updatedValue, newValue, barCode)
-                binding.flipperMedia.tvProductName.text = "$updatedValue, "
+            if (item == "ProductName") {
+                productQueries.update_product(updatedValue, value, barCode)
+                binding.flipperMedia.tvProductName.text = updatedValue
             }
-            if (columnName == "ProductBrand") {
-                productQueries.update_brand(updatedValue, newValue, barCode)
+            if (item == "ProductBrand") {
+                productQueries.update_brand(updatedValue, value, barCode)
                 binding.flipperMedia.tvProductBrand.text = updatedValue
             }
         }
@@ -503,7 +496,17 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
             } catch (_: RuntimeException) {
                 Log.e("Software version", "Software failed to update to Version: $versionNr")
             }
-            // DO NOT FORGET TO SET INITIAL TABLE GENERATION DB VERSION in DBInfo IF UPDATING. CURRENTLY SET TO VERSION 7
+        }
+
+        if (versionNr == "7") {
+            try {
+                Database.Schema.migrate(driver, oldVersion = 7, newVersion = 8)
+                versionNr = "8"
+                Log.d("Software version", "Software updated to Version: $versionNr")
+            } catch (_: RuntimeException) {
+                Log.e("Software version", "Software failed to update to Version: $versionNr")
+            }
+            // DO NOT FORGET TO SET INITIAL TABLE GENERATION DB VERSION in DBInfo IF UPDATING. CURRENTLY SET TO VERSION 8
             // DO NOT FORGET TO UPDATE SOFTWARE VERSION IN MIGRATION FILE
         }
     }

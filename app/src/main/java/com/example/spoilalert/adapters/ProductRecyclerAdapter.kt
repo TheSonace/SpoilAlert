@@ -6,13 +6,11 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.os.StrictMode
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.compose.ui.text.font.Typeface
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
@@ -21,6 +19,7 @@ import com.example.spoilalert.R
 import com.example.spoilalert.databinding.ActivityMainBinding
 import com.example.spoilalert.models.ProductModel
 import com.example.spoilalert.utils.DownloadAndSaveImageTask
+import com.example.spoilalert.utils.getNutriScore
 import com.example.spoilalert.utils.loadImageFromWebOperations
 import java.io.File
 import java.text.SimpleDateFormat
@@ -119,13 +118,13 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?,
             if (productQueries.get_nullcheck(item.barCode).executeAsList()[0].toInt() == 1) {
                 holder.prodInfo.setBackgroundResource(R.drawable.circle_background)}
             val record = productQueries.getRecordKey(item.barCode).executeAsList()[0]
-            val img_loc = productQueries.getimg(record).executeAsList()[0]
+            val imgLoc = productQueries.getimg(record).executeAsList()[0]
             var myBitmap: Bitmap? = null
-            if (img_loc != "null") {
+            if (imgLoc != "null") {
                 val filename = record
                 val file = File(File(mContext.filesDir, "Products"), "$filename.jpg")
                 if (!file.exists()) {
-                    DownloadAndSaveImageTask(mContext, filename, database).execute(img_loc)
+                    DownloadAndSaveImageTask(mContext, filename, database).execute(imgLoc)
                     if (file.exists()) {
                     }
                 }
@@ -133,7 +132,7 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?,
                     myBitmap = BitmapFactory.decodeFile(file.toString())
                 }
             }
-            openPreview(img_loc, item, binding, myBitmap)
+            openPreview(imgLoc, item, binding, myBitmap)
             }
 
         if (item.isExpanded!!) {
@@ -161,7 +160,6 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?,
     private fun onItemClicked(productModel: ProductModel?, holder: ProductViewHolder) {
         productModel?.isExpanded = !productModel?.isExpanded!!
         if (productModel.item_data.isEmpty()) {
-            Log.e("empty?", "Should be")
             val key = productModel.item_data
             val pos = items?.indexOfFirst {it.item_data == key}
             if (pos != null) {
@@ -177,6 +175,7 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?,
         else (notifyDataSetChanged())
     }
 
+    @SuppressLint("ResourceType")
     fun openPreview(productpreviewlist: String, item: ProductModel, binding: ActivityMainBinding, bitmapimg: Bitmap?) {
         val viewFlipper = binding.myViewFlipper
         binding.flipperMedia.editImageButton.setBackgroundResource(R.drawable.circle_background)
@@ -187,9 +186,10 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?,
                 binding.flipperMedia.editImageButton.setBackgroundResource(R.drawable.circle_border_red)}
         }
         binding.flipperMedia.imageView.setImageBitmap(img)
-        binding.flipperMedia.tvProductName.text = item.product + ", "
+        binding.flipperMedia.tvProductName.text = item.product
         binding.flipperMedia.tvProductBrand.text = item.brand
         binding.flipperMedia.tvbarCode.text = item.barCode
+        binding.flipperMedia.NutriScore.setImageResource(getNutriScore(productQueries.get_nutriscore(item.barCode).executeAsList()[0]))
         viewFlipper.displayedChild = viewFlipper.indexOfChild(binding.flipperMedia.productView)
     }
 

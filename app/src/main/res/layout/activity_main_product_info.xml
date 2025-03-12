@@ -11,7 +11,8 @@
         android:id="@+id/imageLayout"
         android:layout_width="wrap_content"
         android:layout_height="400dp"
-        android:padding="10dp">
+        android:padding="10dp"
+        >
 
         <RelativeLayout
             android:layout_width="wrap_content"
@@ -25,7 +26,7 @@
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
                 android:adjustViewBounds="true"
-                android:padding="5dp"/>
+                android:padding="10dp"/>
 
             <ImageView
                 android:id="@+id/editImageButton"
@@ -46,28 +47,20 @@
 
     <RelativeLayout
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:layout_below="@id/imageLayout">
-
-        <TextView
-            android:id="@+id/tvProductName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/imageLayout"
+        android:layout_margin="10dp"
+        android:padding="10dp"
+        android:background="@drawable/rounded_edge_product"
+        >
+        <ImageView
+            android:id="@+id/NutriScore"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_alignParentEnd="true"
             android:layout_alignParentTop="true"
-            android:layout_toStartOf="@id/center"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:gravity="center"
-            android:textColor="@color/colorTitle"
-            />
-
-        <TextView
-            android:id="@+id/center"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_centerInParent="true"
-            android:textColor="@color/colorTitle"
+            android:clickable="true"
+            android:src="@raw/nutriscore_grey"
             />
 
         <TextView
@@ -75,10 +68,24 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
-            android:layout_toEndOf="@id/center"
+            android:layout_alignParentStart="true"
+            android:layout_toStartOf="@id/NutriScore"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:gravity="start|center"
+            android:textColor="@color/colorTitle"
+            />
+
+        <TextView
+            android:id="@+id/tvProductName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/tvProductBrand"
+            android:layout_alignParentStart="true"
+            android:layout_toStartOf="@id/NutriScore"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:gravity="center"
+            android:gravity="start|center"
             android:textColor="@color/colorTitle"
             />
 
