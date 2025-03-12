@@ -68,6 +68,7 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
     private lateinit var imageCapture: ImageCapture
 
     private var rewardedAd: RewardedAd? = null
+    private lateinit var adRequest: AdRequest
     private final var TAG = "MainActivity"
 
     lateinit var alarmManager: AlarmManager
@@ -96,7 +97,7 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
         adView.setAdSize(AdSize(FULL_WIDTH, AUTO_HEIGHT))
         this.adView = adView
         binding.adViewContainer.addView(adView)
-        val adRequest = AdRequest.Builder().build()
+        adRequest = AdRequest.Builder().build()
         adView.loadAd(adRequest)
         loadAdd(adRequest)
 
@@ -216,7 +217,7 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
                     Log.d(TAG, "User earned the reward.")
                     rewardedAd = null
                     loadAdd(adRequest)
-                    val adRequest = AdRequest.Builder().build()
+                    adRequest = AdRequest.Builder().build()
                     adView.loadAd(adRequest)
                 }
             } ?: run {
