@@ -45,6 +45,10 @@ class DownloadAndSaveImageTask(context: Context, filename: Long, database: Datab
                 out.flush()
                 out.close()
                 productQueries.update_image(file.toString(), fileName)
+                if (file.exists()) {
+                    productQueries.set_nullcheck_recordkey(fileName)
+                    return
+                }
                 Log.i("SpoilAlert", "Image saved.")
             } catch (e: Exception) {
                 Log.i("SpoilAlert", "Failed to save image.")

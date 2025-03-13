@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS product_data (
   product_url TEXT NOT NULL,
   product_url_original TEXT NOT NULL,
   image TEXT NOT NULL,
-  image_original TEXT NOT NULL,
+  image_original TEXT NOT NULL DEFAULT "1",
   nutriscore TEXT NOT NULL,
   nutriscore_original TEXT NOT NULL,
   last_updated TEXT NOT NULL,
@@ -18,12 +18,15 @@ CREATE TABLE IF NOT EXISTS product_data (
 );
 
 selectAll:
-SELECT RecordKey, product, product_url, null_check, status, image
+SELECT RecordKey, product, product_url, null_check, status, image, image_original
 FROM product_data;
 
 deleteAll:
 DELETE
 FROM product_data;
+
+deleteProduct:
+DELETE FROM product_data WHERE barCode = ?;
 
 localcheck:
 SELECT barCode
@@ -56,10 +59,13 @@ update_product:
 UPDATE product_data SET product = :new_prod WHERE product = :old_prod AND barCode = :barcode;
 
 update_image:
-UPDATE product_data SET image = ? WHERE RecordKey = ?;
+UPDATE product_data SET image = ?, image_original = "0" WHERE RecordKey = ?;
 
 set_nullcheck:
 UPDATE product_data SET null_check = 1 WHERE barCode =? AND brand != 'null' AND product != 'null' AND image != 'null';
+
+set_nullcheck_recordkey:
+UPDATE product_data SET null_check = 1 WHERE RecordKey =? AND brand != 'null' AND product != 'null' AND image != 'null';
 
 get_nullcheck:
 SELECT null_check

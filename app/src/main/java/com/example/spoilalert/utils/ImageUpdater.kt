@@ -44,6 +44,7 @@ class UpdateAndSaveImageTask(context: Context, filename: Long, database: Databas
             out.close()
 
             Log.e("File size?", floor(file.length() / 1000.0 + 0.5).toInt().toString())
+            Log.e("image updated", file.toString())
             productQueries.update_image(file.toString(), fileName)
             return file
         }

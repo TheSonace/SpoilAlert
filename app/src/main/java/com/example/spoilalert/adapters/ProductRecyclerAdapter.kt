@@ -185,6 +185,7 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?,
             if (img == null) {
                 binding.flipperMedia.editImageButton.setBackgroundResource(R.drawable.circle_border_red)}
         }
+        binding.flipperMedia.refreshProductButton.visibility = View.INVISIBLE
         binding.flipperMedia.imageView.setImageBitmap(img)
         binding.flipperMedia.tvProductName.text = item.product
         binding.flipperMedia.tvProductBrand.text = item.brand
