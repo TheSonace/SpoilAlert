@@ -20,7 +20,6 @@ import com.example.spoilalert.databinding.ActivityMainBinding
 import com.example.spoilalert.models.ProductModel
 import com.example.spoilalert.utils.DownloadAndSaveImageTask
 import com.example.spoilalert.utils.getNutriScore
-import com.example.spoilalert.utils.loadImageFromWebOperations
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -121,18 +120,15 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?,
             val imgLoc = productQueries.getimg(record).executeAsList()[0]
             var myBitmap: Bitmap? = null
             if (imgLoc != "null") {
-                val filename = record
-                val file = File(File(mContext.filesDir, "Products"), "$filename.jpg")
-                if (!file.exists()) {
-                    DownloadAndSaveImageTask(mContext, filename, database).execute(imgLoc)
-                    if (file.exists()) {
-                    }
+                val file = File(File(mContext.filesDir, "Products"), "$record.jpg")
+                if (!file.exists() && imgLoc.startsWith("https")) {
+                    DownloadAndSaveImageTask(mContext, record).execute(imgLoc)
                 }
                 if (file.exists()) {
                     myBitmap = BitmapFactory.decodeFile(file.toString())
                 }
             }
-            openPreview(imgLoc, item, binding, myBitmap)
+            openPreview(item, binding, myBitmap)
             }
 
         if (item.isExpanded!!) {
@@ -176,16 +172,14 @@ class ProductAdapter(context: Context, data: MutableList<ProductModel>?,
     }
 
     @SuppressLint("ResourceType")
-    fun openPreview(productpreviewlist: String, item: ProductModel, binding: ActivityMainBinding, bitmapimg: Bitmap?) {
+    fun openPreview(item: ProductModel, binding: ActivityMainBinding, bitmapimg: Bitmap?) {
         val viewFlipper = binding.myViewFlipper
         binding.flipperMedia.editImageButton.setBackgroundResource(R.drawable.circle_background)
         var img = bitmapimg
         if (img == null) {
-            img = loadImageFromWebOperations(productpreviewlist)
-            if (img == null) {
-                binding.flipperMedia.editImageButton.setBackgroundResource(R.drawable.circle_border_red)}
+            binding.flipperMedia.editImageButton.setBackgroundResource(R.drawable.circle_border_red)
         }
-        binding.flipperMedia.refreshProductButton.visibility = View.INVISIBLE
+
         binding.flipperMedia.imageView.setImageBitmap(img)
         binding.flipperMedia.tvProductName.text = item.product
         binding.flipperMedia.tvProductBrand.text = item.brand

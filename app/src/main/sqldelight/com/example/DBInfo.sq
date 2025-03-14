@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS DBInfo (
 );
 
 INSERT INTO DBInfo (user_version)
-VALUES(8);
+VALUES(10);
 
 selectAll:
 SELECT *

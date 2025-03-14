@@ -22,10 +22,14 @@ import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.example.spoilalert.adapters.ProductAdapter
+import com.example.spoilalert.adapters.clearProdPreview
+import com.example.spoilalert.adapters.forceRefreshProdPreview
+import com.example.spoilalert.adapters.populateProdPreview
 import com.example.spoilalert.databinding.ActivityMainBinding
 import com.example.spoilalert.enginebuilder.OpenFoodFactsKtorClient
 import com.example.spoilalert.utils.AlarmReceiver
@@ -164,6 +168,16 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
 
         binding.mainMenuStartScanButton.setOnClickListener {
             scanBarcode?.launch(android.Manifest.permission.CAMERA)
+        }
+
+        binding.flipperMedia.refreshProductButton.setOnClickListener {
+            val getBarcode = binding.flipperMedia.tvbarCode.text.toString()
+            clearProdPreview(binding.flipperMedia)
+            lifecycleScope.launch {
+                forceRefreshProdPreview(this@MainActivity, getBarcode, productQueries)
+            }
+            Thread.sleep(1000)
+            populateProdPreview(this@MainActivity, getBarcode, productQueries, binding.flipperMedia)
         }
 
         binding.flipperMedia.editImageButton.setOnClickListener{
@@ -507,6 +521,30 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
                 Log.e("Software version", "Software failed to update to Version: $versionNr")
             }
             // DO NOT FORGET TO SET INITIAL TABLE GENERATION DB VERSION in DBInfo IF UPDATING. CURRENTLY SET TO VERSION 8
+            // DO NOT FORGET TO UPDATE SOFTWARE VERSION IN MIGRATION FILE
+        }
+
+        if (versionNr == "8") {
+            try {
+                Database.Schema.migrate(driver, oldVersion = 8, newVersion = 9)
+                versionNr = "9"
+                Log.d("Software version", "Software updated to Version: $versionNr")
+            } catch (_: RuntimeException) {
+                Log.e("Software version", "Software failed to update to Version: $versionNr")
+            }
+            // DO NOT FORGET TO SET INITIAL TABLE GENERATION DB VERSION in DBInfo IF UPDATING. CURRENTLY SET TO VERSION 9
+            // DO NOT FORGET TO UPDATE SOFTWARE VERSION IN MIGRATION FILE
+        }
+
+        if (versionNr == "9") {
+            try {
+                Database.Schema.migrate(driver, oldVersion = 9, newVersion = 10)
+                versionNr = "10"
+                Log.d("Software version", "Software updated to Version: $versionNr")
+            } catch (_: RuntimeException) {
+                Log.e("Software version", "Software failed to update to Version: $versionNr")
+            }
+            // DO NOT FORGET TO SET INITIAL TABLE GENERATION DB VERSION in DBInfo IF UPDATING. CURRENTLY SET TO VERSION 9
             // DO NOT FORGET TO UPDATE SOFTWARE VERSION IN MIGRATION FILE
         }
     }

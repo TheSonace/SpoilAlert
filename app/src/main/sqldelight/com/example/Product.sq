@@ -10,10 +10,12 @@ CREATE TABLE IF NOT EXISTS product_data (
   product_url TEXT NOT NULL,
   product_url_original TEXT NOT NULL,
   image TEXT NOT NULL,
-  image_original TEXT NOT NULL DEFAULT "1",
+  image_original TEXT NOT NULL,
+  image_modified TEXT NOT NULL DEFAULT "0",
   nutriscore TEXT NOT NULL,
   nutriscore_original TEXT NOT NULL,
   last_updated TEXT NOT NULL,
+  needs_refresh TEXT NOT NULL DEFAULT "0",
   null_check INTEGER NOT NULL DEFAULT 0
 );
 
@@ -28,6 +30,14 @@ FROM product_data;
 deleteProduct:
 DELETE FROM product_data WHERE barCode = ?;
 
+forceRefresh:
+UPDATE product_data SET
+barCode = CASE WHEN barCode_original = "null" THEN barCode ELSE barCode_original END,
+brand = CASE WHEN brand_original = "null" THEN brand ELSE brand_original END,
+product = CASE WHEN product_original = "null" THEN product ELSE product_original END,
+nutriscore = CASE WHEN nutriscore_original = "null" THEN nutriscore ELSE nutriscore_original END
+WHERE barCode = ?;
+
 localcheck:
 SELECT barCode
 FROM product_data WHERE barCode = :barcode;
@@ -38,6 +48,14 @@ FROM product_data WHERE barCode = :barcode;
 
 getimg:
 SELECT image
+FROM product_data WHERE RecordKey = :recordkey;
+
+getimg_original:
+SELECT image_original
+FROM product_data WHERE RecordKey = :recordkey;
+
+getimg_modified:
+SELECT image_modified
 FROM product_data WHERE RecordKey = :recordkey;
 
 getRecordKey:
@@ -58,8 +76,14 @@ UPDATE product_data SET brand = ? WHERE brand = ? AND barCode = ?;
 update_product:
 UPDATE product_data SET product = :new_prod WHERE product = :old_prod AND barCode = :barcode;
 
+download_image:
+UPDATE product_data SET image = ?, image_modified = "0" WHERE RecordKey = ?;
+
 update_image:
-UPDATE product_data SET image = ?, image_original = "0" WHERE RecordKey = ?;
+UPDATE product_data SET image = ?, image_modified = "1" WHERE RecordKey = ?;
+
+reset_image:
+UPDATE product_data SET image = ?, image_original = ?, image_modified = "0" WHERE RecordKey = ?;
 
 set_nullcheck:
 UPDATE product_data SET null_check = 1 WHERE barCode =? AND brand != 'null' AND product != 'null' AND image != 'null';

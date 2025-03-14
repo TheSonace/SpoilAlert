@@ -32,6 +32,7 @@ import androidx.lifecycle.lifecycleScope
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.example.Product_data
 import com.example.spoilalert.adapters.clearProdPreview
+import com.example.spoilalert.adapters.forceRefreshProdPreview
 import com.example.spoilalert.adapters.populateProdPreview
 import com.example.spoilalert.databinding.ActivityBarcodeScanBinding
 import com.example.spoilalert.enginebuilder.OpenFoodFactsKtorClient
@@ -145,25 +146,12 @@ class BarcodeScan : AppCompatActivity() {
 
         binding.flipperMedia.prodInfo.refreshProductButton.setOnClickListener{
             val getBarcode = binding.flipperMedia.prodInfo.tvbarCode.text.toString()
-            val localProduct =
-                productQueries.getlocal(getBarcode).executeAsList()[0]
-            val record = localProduct.RecordKey
-            val file = File(
-                File(this@BarcodeScan.filesDir, "Products"),
-                "$record.jpg"
-            )
-            if (file.exists()) {file.delete()}
-            if (!file.exists()) {Log.e("file deleted?", file.toString())
-                Log.e("file deleted?", "yes")}
-            productQueries.deleteProduct(getBarcode)
             clearProdPreview(binding.flipperMedia.prodInfo)
-
-            activeScanBoolean = 2
-            Log.e("Adding Data!!", getBarcode)
             lifecycleScope.launch {
-                downloadProduct(getBarcode, "")
+                forceRefreshProdPreview(this@BarcodeScan, getBarcode, productQueries)
             }
-
+            Thread.sleep(1000)
+            populateProdPreview(this@BarcodeScan, getBarcode, productQueries, binding.flipperMedia.prodInfo)
         }
 
         binding.flipperMedia.prodInfo.editImageButton.setOnClickListener{
@@ -676,7 +664,7 @@ class BarcodeScan : AppCompatActivity() {
                 productUrl,
                 productUrl,
                 image,
-                "1",
+                image,
                 nutriscore,
                 nutriscore,
                 sdf.format(cal.time)
@@ -717,8 +705,7 @@ class BarcodeScan : AppCompatActivity() {
                         Log.e("imgLoc_fiiiile_check?", file.toString())
                         DownloadAndSaveImageTask(
                             this@BarcodeScan,
-                            record,
-                            database
+                            record
                         ).execute(imgLoc)
 
                     }

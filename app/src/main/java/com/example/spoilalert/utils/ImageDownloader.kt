@@ -8,15 +8,15 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.bitmap.DownsampleStrategy
 import com.bumptech.glide.request.RequestOptions
-import com.example.spoilalert.Database
+import com.example.ProductQueries
 import java.io.File
 import java.io.FileOutputStream
 import java.lang.ref.WeakReference
 
-class DownloadAndSaveImageTask(context: Context, filename: Long, database: Database) : AsyncTask<String, Unit, Unit>() {
+class DownloadAndSaveImageTask(context: Context, filename: Long) : AsyncTask<String, Unit, Unit>() {
     private var mContext: WeakReference<Context> = WeakReference(context)
     private var fileName: Long = filename
-    private val productQueries = database.productQueries
+    private lateinit var productQueries: ProductQueries
 
     @Deprecated("Deprecated in Java")
     override fun doInBackground(vararg params: String?) {
@@ -44,7 +44,7 @@ class DownloadAndSaveImageTask(context: Context, filename: Long, database: Datab
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
                 out.flush()
                 out.close()
-                productQueries.update_image(file.toString(), fileName)
+                productQueries.download_image(file.toString(), fileName)
                 if (file.exists()) {
                     productQueries.set_nullcheck_recordkey(fileName)
                     return

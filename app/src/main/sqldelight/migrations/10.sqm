@@ -1,0 +1,4 @@
+
+ALTER TABLE product_data ADD COLUMN needs_refresh TEXT NOT NULL DEFAULT "0";
+
+UPDATE DBInfo SET user_version = 10;

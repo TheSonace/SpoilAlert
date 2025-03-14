@@ -1,5 +1,5 @@
-ALTER TABLE product_data ADD COLUMN nutriscore TEXT NOT NULL DEFAULT "null";
 ALTER TABLE product_data ADD COLUMN nutriscore_original TEXT NOT NULL DEFAULT "null";
+ALTER TABLE product_data ADD COLUMN nutriscore TEXT NOT NULL DEFAULT "null";
 
 UPDATE product_data SET nutriscore = "null";
 UPDATE product_data SET nutriscore_original = "null";

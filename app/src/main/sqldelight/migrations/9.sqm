@@ -1,0 +1,6 @@
+
+ALTER TABLE product_data ADD COLUMN image_modified TEXT NOT NULL DEFAULT "0";
+
+UPDATE product_data SET image_modified = "0";
+
+UPDATE DBInfo SET user_version = 9;
