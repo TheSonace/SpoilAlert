@@ -35,6 +35,7 @@ import com.example.spoilalert.enginebuilder.OpenFoodFactsKtorClient
 import com.example.spoilalert.utils.AlarmReceiver
 import com.example.spoilalert.utils.JsonConverter
 import com.example.spoilalert.utils.UpdateAndSaveImageTask
+import com.example.spoilalert.utils.openNutriscoreDialog
 import com.example.spoilalert.utils.rotateImageProxy
 import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdRequest
@@ -171,13 +172,23 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
         }
 
         binding.flipperMedia.refreshProductButton.setOnClickListener {
-            val getBarcode = binding.flipperMedia.tvbarCode.text.toString()
-            clearProdPreview(binding.flipperMedia)
-            lifecycleScope.launch {
-                forceRefreshProdPreview(this@MainActivity, getBarcode, productQueries)
-            }
-            Thread.sleep(1000)
-            populateProdPreview(this@MainActivity, getBarcode, productQueries, binding.flipperMedia)
+            val builder = AlertDialog.Builder(this@MainActivity)
+            builder.setMessage("Are you sure you want to Refresh all data?")
+                .setCancelable(false)
+                .setPositiveButton("Yes") { dialog, _ ->
+                val getBarcode = binding.flipperMedia.tvbarCode.text.toString()
+                clearProdPreview(binding.flipperMedia)
+                lifecycleScope.launch {
+                    forceRefreshProdPreview(this@MainActivity, getBarcode, productQueries)
+                }
+                Thread.sleep(1000)
+                populateProdPreview(this@MainActivity, getBarcode, productQueries, binding.flipperMedia)
+                }
+                .setNegativeButton("No") { dialog, _ ->
+                    dialog.dismiss()
+                }
+            val alert = builder.create()
+            alert.show()
         }
 
         binding.flipperMedia.editImageButton.setOnClickListener{
@@ -206,6 +217,10 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
                     }
                 }
             )
+        }
+
+        binding.flipperMedia.NutriScore.setOnClickListener{
+            openNutriscoreDialog(this, layoutInflater, binding.flipperMedia, productQueries)
         }
 
         binding.flipperMedia.tvProductName.setOnClickListener{

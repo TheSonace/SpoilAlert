@@ -38,6 +38,7 @@ import com.example.spoilalert.databinding.ActivityBarcodeScanBinding
 import com.example.spoilalert.enginebuilder.OpenFoodFactsKtorClient
 import com.example.spoilalert.utils.DownloadAndSaveImageTask
 import com.example.spoilalert.utils.UpdateAndSaveImageTask
+import com.example.spoilalert.utils.openNutriscoreDialog
 import com.example.spoilalert.utils.rotateImageProxy
 import com.google.android.gms.vision.CameraSource
 import com.google.android.gms.vision.Detector
@@ -145,13 +146,23 @@ class BarcodeScan : AppCompatActivity() {
         }
 
         binding.flipperMedia.prodInfo.refreshProductButton.setOnClickListener{
-            val getBarcode = binding.flipperMedia.prodInfo.tvbarCode.text.toString()
-            clearProdPreview(binding.flipperMedia.prodInfo)
-            lifecycleScope.launch {
-                forceRefreshProdPreview(this@BarcodeScan, getBarcode, productQueries)
-            }
-            Thread.sleep(1000)
-            populateProdPreview(this@BarcodeScan, getBarcode, productQueries, binding.flipperMedia.prodInfo)
+            val builder = AlertDialog.Builder(this@BarcodeScan)
+            builder.setMessage("Are you sure you want to Refresh all data?")
+                .setCancelable(false)
+                .setPositiveButton("Yes") { dialog, _ ->
+                    val getBarcode = binding.flipperMedia.prodInfo.tvbarCode.text.toString()
+                    clearProdPreview(binding.flipperMedia.prodInfo)
+                    lifecycleScope.launch {
+                        forceRefreshProdPreview(this@BarcodeScan, getBarcode, productQueries)
+                    }
+                    Thread.sleep(1000)
+                    populateProdPreview(this@BarcodeScan, getBarcode, productQueries, binding.flipperMedia.prodInfo)
+                }
+                .setNegativeButton("No") { dialog, _ ->
+                    dialog.dismiss()
+                }
+            val alert = builder.create()
+            alert.show()
         }
 
         binding.flipperMedia.prodInfo.editImageButton.setOnClickListener{
@@ -178,6 +189,10 @@ class BarcodeScan : AppCompatActivity() {
                     }
                 }
             )
+        }
+
+        binding.flipperMedia.prodInfo.NutriScore.setOnClickListener{
+            openNutriscoreDialog(this, layoutInflater, binding.flipperMedia.prodInfo, productQueries)
         }
 
         binding.flipperMedia.prodInfo.tvProductName.setOnClickListener{

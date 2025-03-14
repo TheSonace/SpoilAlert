@@ -77,7 +77,7 @@
             />
 
         <TextView
-            android:id="@+id/tvProductBrand"
+            android:id="@+id/tvProductName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
@@ -90,10 +90,10 @@
             />
 
         <TextView
-            android:id="@+id/tvProductName"
+            android:id="@+id/tvProductBrand"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/tvProductBrand"
+            android:layout_below="@id/tvProductName"
             android:layout_alignParentStart="true"
             android:layout_toStartOf="@id/NutriScore"
             android:textSize="16sp"

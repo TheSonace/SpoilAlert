@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/CustomDatePickerLayout"
+    android:orientation="vertical"
+    android:padding="10dp"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    >
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/nutriscore_select"
+        android:textStyle="bold"
+        android:layout_marginVertical="5dp"
+        />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="3"
+        >
+        <ImageView
+            android:id="@+id/imageViewNutri_A"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_weight="1"
+            android:clickable="true"
+            android:src="@raw/nutriscore_a"
+            android:layout_marginVertical="5dp"
+            />
+
+        <ImageView
+            android:id="@+id/imageViewNutri_B"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_weight="1"
+            android:clickable="true"
+            android:src="@raw/nutriscore_b"
+            android:layout_marginHorizontal="5dp"
+            android:layout_marginVertical="5dp"
+            />
+
+        <ImageView
+            android:id="@+id/imageViewNutri_C"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_weight="1"
+            android:clickable="true"
+            android:src="@raw/nutriscore_c"
+            android:layout_marginVertical="5dp"
+            />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="3"
+        >
+
+        <ImageView
+            android:id="@+id/imageViewNutri_D"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_weight="1"
+            android:clickable="true"
+            android:src="@raw/nutriscore_d"
+            />
+
+        <ImageView
+            android:id="@+id/imageViewNutri_E"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_weight="1"
+            android:clickable="true"
+            android:src="@raw/nutriscore_e"
+            android:layout_marginHorizontal="5dp"
+            />
+
+        <ImageView
+            android:id="@+id/imageViewNutri_G"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_weight="1"
+            android:clickable="true"
+            android:src="@raw/nutriscore_grey"
+            />
+
+    </LinearLayout>
+
+</LinearLayout>

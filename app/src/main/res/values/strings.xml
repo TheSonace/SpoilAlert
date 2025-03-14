@@ -24,4 +24,5 @@
     <string name="customProductDetected">Custom Product Detected</string>
     <string name="customBarcodeDetected">Item not found, please confirm barcode</string>
     <string name="add_custom_product">Name:</string>
+    <string name="nutriscore_select">Please select a Nutri-Score for this product</string>
 </resources>

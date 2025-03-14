@@ -82,6 +82,9 @@ UPDATE product_data SET image = ?, image_modified = "0" WHERE RecordKey = ?;
 update_image:
 UPDATE product_data SET image = ?, image_modified = "1" WHERE RecordKey = ?;
 
+update_nutriscore:
+UPDATE product_data SET nutriscore = ? WHERE barCode = ?;
+
 reset_image:
 UPDATE product_data SET image = ?, image_original = ?, image_modified = "0" WHERE RecordKey = ?;
 
