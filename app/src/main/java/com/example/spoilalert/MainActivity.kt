@@ -46,6 +46,7 @@ import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.MobileAds
+import com.google.android.gms.ads.RequestConfiguration
 import com.google.android.gms.ads.rewarded.RewardedAd
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 import kotlinx.coroutines.CoroutineScope
@@ -97,8 +98,14 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
             MobileAds.initialize(this@MainActivity) {}
         }
 
+        val testDeviceIds: List<String> = mutableListOf("B3EEABB8EE11C2BE770B684D95219ECB")
+        val configuration =
+            RequestConfiguration.Builder().setTestDeviceIds(testDeviceIds).build()
+        MobileAds.setRequestConfiguration(configuration)
+
         val adView = AdView(this)
-        adView.adUnitId = "ca-app-pub-3940256099942544/9214589741"
+//        adView.adUnitId = "ca-app-pub-8529309443311291/7398433278" // Live
+        adView.adUnitId = "ca-app-pub-3940256099942544/9214589741" // Test
         adView.setAdSize(AdSize(FULL_WIDTH, AUTO_HEIGHT))
         this.adView = adView
         binding.adViewContainer.addView(adView)
@@ -255,7 +262,8 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
         }
 
         binding.mainMenuSettingsButton.setOnClickListener {
-            Toast.makeText(applicationContext, "Placeholder for settings button", Toast.LENGTH_SHORT).show()
+            val intent = Intent(this, Settings::class.java)
+            startActivity(intent)
         }
 
         binding.mainMenuInfoButton.setOnClickListener {
@@ -305,7 +313,10 @@ class MainActivity : ComponentActivity(){ //, OnTouchListener, GestureDetector.O
     }
 
     private fun loadAdd (adRequest: AdRequest) {
-        RewardedAd.load(this,"ca-app-pub-3940256099942544/5224354917", adRequest, object : RewardedAdLoadCallback() {
+        RewardedAd.load(this,
+//            "ca-app-pub-8529309443311291/9695092424" // Live
+            "ca-app-pub-3940256099942544/5224354917" // Test
+            , adRequest, object : RewardedAdLoadCallback() {
         override fun onAdFailedToLoad(adError: LoadAdError) {
             Log.d(TAG, adError.toString())
             rewardedAd = null

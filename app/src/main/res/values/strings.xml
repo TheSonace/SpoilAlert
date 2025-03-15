@@ -25,4 +25,13 @@
     <string name="customBarcodeDetected">Item not found, please confirm barcode</string>
     <string name="add_custom_product">Name:</string>
     <string name="nutriscore_select">Please select a Nutri-Score for this product</string>
+    <string name="settings">Settings</string>
+    <string name="settings_general">General</string>
+    <string name="setting_side_bar_menu_size">Side Bar Menu Size:</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_menu_type">Menu Type</string>
+    <string name="setting_long_notification_enabled">Long notification enabled</string>
+    <string name="setting_short_notification_enabled">Short notification enabled</string>
+    <string name="setting_short_notification_days">Short notification days</string>
+    <string name="setting_notification_days">Notification lead time</string>
 </resources>

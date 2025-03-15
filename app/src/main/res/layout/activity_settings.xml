@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView  xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@color/colorBgMain"
+    tools:context=".Settings"
+    >
+
+<FrameLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="5dp">
+
+<RelativeLayout
+    android:id="@+id/settingsMain"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    >
+
+    <TextView
+        android:id="@+id/settings_settings"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:textSize="36sp"
+        android:layout_centerHorizontal="true"
+        android:text="@string/settings"
+        />
+
+    <TextView
+        android:id="@+id/settings_general"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/settings_settings"
+        android:textStyle="bold"
+        android:textSize="14sp"
+        android:paddingHorizontal="5dp"
+        android:layout_marginVertical="2dp"
+        android:text="@string/settings_general"
+        android:background="@drawable/rounded_edge_product"
+        />
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/settings_menuSetting_type"
+        android:layout_below="@+id/settings_general"
+        android:layout_marginVertical="1dp"
+        android:background="@drawable/rounded_edge_settings"
+        >
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:paddingStart="25dp"
+            android:padding="5dp"
+            tools:ignore="RtlSymmetry"
+            android:text="@string/settings_menu_type"
+            />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/settings_menuSetting_size"
+        android:layout_below="@+id/settings_menuSetting_type"
+        android:layout_marginVertical="1dp"
+        android:background="@drawable/rounded_edge_settings"
+        >
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:paddingStart="25dp"
+            android:padding="5dp"
+            tools:ignore="RtlSymmetry"
+            android:text="@string/setting_side_bar_menu_size"
+            />
+    </RelativeLayout>
+
+
+
+    <TextView
+        android:id="@+id/settings_notifications"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/settings_menuSetting_size"
+        android:textStyle="bold"
+        android:textSize="14sp"
+        android:paddingHorizontal="5dp"
+        android:layout_marginVertical="2dp"
+        android:text="@string/settings_notifications"
+        android:background="@drawable/rounded_edge_product"
+        />
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/settings_notifications_long_enabled"
+        android:layout_below="@+id/settings_notifications"
+        android:layout_marginVertical="1dp"
+        android:background="@drawable/rounded_edge_settings"
+        >
+        <TextView
+            android:id="@+id/settings_notifications_long_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:paddingStart="25dp"
+            android:padding="2dp"
+            tools:ignore="RtlSymmetry"
+            android:text="@string/setting_long_notification_enabled"
+            />
+
+        <Switch
+            android:id="@+id/switch1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignTop="@+id/settings_notifications_long_button"
+            android:layout_alignBottom="@+id/settings_notifications_long_button"
+            android:paddingEnd="25dp"
+            android:checked="true"
+            tools:ignore="RtlSymmetry,UseSwitchCompatOrMaterialXml" />
+
+        <TextView
+            android:id="@+id/settings_notifications_long_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:layout_below="@+id/settings_notifications_long_button"
+            android:paddingStart="25dp"
+            android:padding="2dp"
+            tools:ignore="RtlSymmetry"
+            android:text="@string/setting_notification_days"
+            />
+
+
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/settings_notifications_short_enabled"
+        android:layout_below="@+id/settings_notifications_long_enabled"
+        android:layout_marginVertical="1dp"
+        android:background="@drawable/rounded_edge_settings"
+        >
+        <TextView
+            android:id="@+id/settings_notifications_short_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:paddingStart="25dp"
+            android:padding="2dp"
+            tools:ignore="RtlSymmetry"
+            android:text="@string/setting_short_notification_enabled"
+            />
+
+        <Switch
+            android:id="@+id/switch2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignTop="@+id/settings_notifications_short_button"
+            android:layout_alignBottom="@+id/settings_notifications_short_button"
+            android:paddingEnd="25dp"
+            android:checked="true"
+            />
+
+        <TextView
+            android:id="@+id/settings_notifications_short_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:layout_below="@+id/settings_notifications_short_button"
+            android:paddingStart="25dp"
+            android:padding="2dp"
+            tools:ignore="RtlSymmetry"
+            android:text="@string/setting_notification_days"
+            />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/settings_notifications_long_enabled"
+        android:layout_marginVertical="1dp"
+        android:background="@drawable/rounded_edge_settings"
+        >
+
+    </RelativeLayout>
+
+</RelativeLayout>
+</FrameLayout>
+</ScrollView>
